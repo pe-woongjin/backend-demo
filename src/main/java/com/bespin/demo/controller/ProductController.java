@@ -1,37 +1,60 @@
 package com.bespin.demo.controller;
 
 import com.bespin.demo.model.Product;
-import net.spy.memcached.MemcachedClient;
+import com.bespin.demo.service.ProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class ProductController {
 
-    @Autowired
-    private MemcachedClient memcachedClient;
+    private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
-    @RequestMapping(value = "/v1/product", method = RequestMethod.GET)
-    public Object list() {
-        System.out.println("===getStats===");
-        System.out.println(memcachedClient.getStats());
+    private ProductService productService;
 
-        System.out.println("===flush===");
-        System.out.println(memcachedClient.flush());
-        return "";
+    public ProductController(@Autowired ProductService productService) {
+        this.productService = productService;
     }
 
-    @RequestMapping(value = "/v1/product/{id}", method = RequestMethod.GET)
-    public Object get(@PathVariable("id") String identifier) {
-        if (memcachedClient.get(identifier) == null) {
-            memcachedClient.add(identifier, 10, new Product(identifier, "", 0));
-        }
-        return memcachedClient.get(identifier);
+    @PostMapping(value = "/v1/products")
+    public ResponseEntity<?> add(@RequestBody Product product) throws CloneNotSupportedException {
+        product.setId(UUID.randomUUID().toString());
+
+        logger.info("add: {}", product);
+
+        productService.addProduct(product);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(product.getId())
+                .toUri();
+        return ResponseEntity.created(location).build();
     }
 
-    @RequestMapping(value = "/v1/product/add", method = RequestMethod.POST)
-    public Object add(@RequestParam String identifier, @RequestParam String name, @RequestParam int price) {
-        memcachedClient.add(identifier, 10, new Product(identifier, name, price));
-        return memcachedClient.get(identifier);
+    @GetMapping(value = "/v1/products/{id}")
+    public ResponseEntity<Product> get(@PathVariable(name = "id", required = true) final String id) {
+        Product product = productService.getProduct(id);
+
+        logger.info("product: {}", product);
+
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping(value = "/v1/products")
+    public ResponseEntity<List<Product>> list() {
+        List<Product> list = productService.getProducts();
+
+        logger.info("products: {}", list);
+
+        return ResponseEntity.ok(list);
     }
 }

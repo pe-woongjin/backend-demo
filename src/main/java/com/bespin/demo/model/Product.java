@@ -1,29 +1,39 @@
 package com.bespin.demo.model;
 
-public class Product {
-    private static final long serialUID = 1L;
+import java.io.Serializable;
 
-    private String identifier;
+public class Product implements Serializable {
+
+    private String id;
     private String name;
-    private int price;
+    private String category;
+    private long price;
+    private Long regdtm;
 
     public Product() {
         super();
     }
 
-    public Product(String identifier, String name, int price) {
+    public Product(final String id) {
         super();
-        this.identifier = identifier;
+        this.id = id;
+    }
+
+    public Product(String id, String name, String category, long price, Long regdtm) {
+        super();
+        this.id = id;
         this.name = name;
+        this.category = category;
         this.price = price;
+        this.regdtm = regdtm;
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String getId() {
+        return id;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -34,11 +44,27 @@ public class Product {
         this.name = name;
     }
 
-    public int getPrice() {
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(long price) {
         this.price = price;
+    }
+
+    public Long getRegdtm() {
+        return regdtm;
+    }
+
+    public void setRegdtm(Long regdtm) {
+        this.regdtm = regdtm;
     }
 }
