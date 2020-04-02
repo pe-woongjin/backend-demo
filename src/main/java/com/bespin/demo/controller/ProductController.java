@@ -25,12 +25,12 @@ public class ProductController {
     }
 
     @PostMapping(value = "/v1/products")
-    public ResponseEntity<?> add(@RequestBody Product product) throws CloneNotSupportedException {
+    public ResponseEntity<?> add(@RequestBody Product product) {
         product.setId(UUID.randomUUID().toString());
 
-        logger.info("add: {}", product);
-
         productService.addProduct(product);
+
+        logger.info("add: {}", product);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

@@ -2,8 +2,6 @@ package com.bespin.demo.service;
 
 import com.bespin.demo.model.Product;
 import net.sf.ehcache.Ehcache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
@@ -19,8 +17,6 @@ public class ProductService {
 
     private static final String CACHE_NAME = "productCache";
 
-    private final Logger logger = LoggerFactory.getLogger(ProductService.class);
-
     private CacheManager cacheManager;
 
     public ProductService(@Autowired CacheManager cacheManager) {
@@ -29,15 +25,11 @@ public class ProductService {
 
     @CachePut(cacheNames = CACHE_NAME, key = "#product.id")
     public Product addProduct(final Product product) {
-        logger.info("addProduct : {}", product);
-
         return product;
     }
 
     @Cacheable(cacheNames = CACHE_NAME, key = "#id")
     public Product getProduct(final String id) {
-        logger.info("getProduct : {}", id);
-
         return new Product();
     }
 
