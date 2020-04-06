@@ -24,7 +24,7 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @PostMapping(value = "/v1/products")
+    @PostMapping(value = "/api/v1/products")
     public ResponseEntity<?> add(@RequestBody Product product) {
         product.setId(UUID.randomUUID().toString());
 
@@ -40,7 +40,7 @@ public class ProductController {
         return ResponseEntity.created(location).build();
     }
 
-    @GetMapping(value = "/v1/products/{id}")
+    @GetMapping(value = "/api/v1/products/{id}")
     public ResponseEntity<Product> get(@PathVariable(name = "id", required = true) final String id) {
         Product product = productService.getProduct(id);
 
@@ -49,7 +49,7 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @GetMapping(value = "/v1/products")
+    @GetMapping(value = "/api/v1/products")
     public ResponseEntity<List<Product>> list() {
         List<Product> list = productService.getProducts();
 

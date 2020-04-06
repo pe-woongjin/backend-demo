@@ -38,11 +38,11 @@ public class ProductControllerTest {
         when(this.productService.addProduct(product)).thenReturn(product);
 
         // then
-        this.mockMvc.perform(post("/v1/products")
+        final ResultActions action = this.mockMvc.perform(post("/api/v1/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJsonString(product))
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .content(toJson(product))
+                .accept(MediaType.APPLICATION_JSON));
+        action.andExpect(status().isCreated());
     }
 
     @Test
@@ -56,7 +56,7 @@ public class ProductControllerTest {
         when(this.productService.getProduct("hello")).thenReturn(product);
 
         // then
-        final ResultActions action = this.mockMvc.perform(get("/v1/products/{id}", id).accept(MediaType.APPLICATION_JSON));
+        final ResultActions action = this.mockMvc.perform(get("/api/v1/products/{id}", id).accept(MediaType.APPLICATION_JSON));
         action.andExpect(status().isOk());
         action.andExpect(jsonPath("$.name").value("world"));
         action.andExpect(jsonPath("$.regdtm").value(dtm));
@@ -73,14 +73,13 @@ public class ProductControllerTest {
         when(this.productService.getProducts()).thenReturn(list);
 
         // then
-        this.mockMvc.perform(get("/v1/products")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.[0].name").value("world1"))
-                .andExpect(jsonPath("$.[1].name").value("world2"));
+        final ResultActions action = this.mockMvc.perform(get("/api/v1/products").accept(MediaType.APPLICATION_JSON));
+        action.andExpect(status().isOk());
+        action.andExpect(jsonPath("$.[0].name").value("world1"));
+        action.andExpect(jsonPath("$.[1].name").value("world2"));
     }
 
-    public static String toJsonString(final Object obj) {
+    public static String toJson(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
         } catch (Exception e) {

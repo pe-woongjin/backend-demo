@@ -8,3 +8,24 @@ spring:
     ehcache:
       config: "classpath:ehcache.xml"
 
+aws:
+  alb:
+    dns: "http://127.0.0.1:3000"
+
+---
+
+spring:
+  profiles: dev
+
+aws:
+  alb:
+    dns: "ksu-ntw-mgmt-alb-918858359.ap-northeast-2.elb.amazonaws.com/ui"
+
+---
+
+spring:
+  profiles: wj
+
+aws:
+  alb:
+    dns: "comp-apne2-prod-mgmt-alb-557453169.ap-northeast-2.elb.amazonaws.com/ui"
