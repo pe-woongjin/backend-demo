@@ -30,7 +30,7 @@ public class ProductController {
 
         productService.addProduct(product);
 
-        logger.info("add: {}", product);
+        logger.info("add : {}", product);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -44,7 +44,7 @@ public class ProductController {
     public ResponseEntity<Product> get(@PathVariable(name = "id", required = true) final String id) {
         Product product = productService.getProduct(id);
 
-        logger.info("product: {}", product);
+        logger.info("get : {}", product);
 
         return ResponseEntity.ok(product);
     }
@@ -53,7 +53,7 @@ public class ProductController {
     public ResponseEntity<List<Product>> list() {
         List<Product> list = productService.getProducts();
 
-        logger.info("products: {}", list);
+        logger.info("list : {}", list);
 
         return ResponseEntity.ok(list);
     }
