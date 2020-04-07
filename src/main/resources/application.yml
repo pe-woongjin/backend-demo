@@ -10,4 +10,4 @@ spring:
 
 aws:
   alb:
-    dns: "https://ui.opsflex.shop"
+    dns: "https://ui.mingming.shop"
