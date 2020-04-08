@@ -2,6 +2,7 @@ package com.bespin.demo.controller;
 
 import com.bespin.demo.model.Product;
 import com.bespin.demo.service.ProductService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,13 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @PostMapping(value = "/v1/products")
-    public ResponseEntity<?> add(@RequestBody Product product) {
+    @PostMapping(value = "/api/v1/products")
+    public ResponseEntity<?> add(@RequestBody Product product) throws Exception {
         product.setId(UUID.randomUUID().toString());
 
         productService.addProduct(product);
 
-        logger.info("add: {}", product);
+        logger.info("add : {}", new ObjectMapper().writeValueAsString(product));
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -40,20 +41,20 @@ public class ProductController {
         return ResponseEntity.created(location).build();
     }
 
-    @GetMapping(value = "/v1/products/{id}")
-    public ResponseEntity<Product> get(@PathVariable(name = "id", required = true) final String id) {
+    @GetMapping(value = "/api/v1/products/{id}")
+    public ResponseEntity<Product> get(@PathVariable(name = "id", required = true) final String id) throws Exception {
         Product product = productService.getProduct(id);
 
-        logger.info("product: {}", product);
+        logger.info("get : {}", new ObjectMapper().writeValueAsString(product));
 
         return ResponseEntity.ok(product);
     }
 
-    @GetMapping(value = "/v1/products")
-    public ResponseEntity<List<Product>> list() {
+    @GetMapping(value = "/api/v1/products")
+    public ResponseEntity<List<Product>> list() throws Exception {
         List<Product> list = productService.getProducts();
 
-        logger.info("products: {}", list);
+        logger.info("list : {}", new ObjectMapper().writeValueAsString(list));
 
         return ResponseEntity.ok(list);
     }

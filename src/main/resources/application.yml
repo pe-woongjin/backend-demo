@@ -8,3 +8,6 @@ spring:
     ehcache:
       config: "classpath:ehcache.xml"
 
+aws:
+  alb:
+    dns: "https://ui.mingming.shop"
