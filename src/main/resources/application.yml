@@ -1,3 +1,6 @@
+## mvn clean package -Dspring.profiles.active=dev
+## java -jar -Dspring.profiles.active=dev backend-demo-1.0.0-SNAPSHOT.jar
+
 server:
   port: 8080
 
@@ -7,6 +10,30 @@ spring:
   cache:
     ehcache:
       config: "classpath:ehcache.xml"
+
+aws:
+  alb:
+    dns: "https://dev.ui.mingming.shop"
+
+---
+spring:
+  profiles: dev
+
+aws:
+  alb:
+    dns: "https://dev.ui.mingming.shop"
+
+---
+spring:
+  profiles: stg
+
+aws:
+  alb:
+    dns: "https://stg.ui.mingming.shop"
+
+---
+spring:
+  profiles: prd
 
 aws:
   alb:
