@@ -3,7 +3,7 @@
     Build Tool : Maven
     API Document Tool : Swagger
     Test : JUnit5
-    
+    gg
 #### 빌드 방법
 ##### 1. Git checkout
     /* make directory */
