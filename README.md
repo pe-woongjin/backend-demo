@@ -3,7 +3,7 @@
     Build Tool : Maven
     API Document Tool : Swagger
     Test : JUnit5
-    
+    gg
 #### 빌드 방법
 ##### 1. Git checkout
     /* make directory */
@@ -26,4 +26,4 @@
     
 ##### 4. 확인
     127.0.0.1:8080/swagger-ui.html 에서 REST API 확인이 가능합니다.
-
+jjjj
