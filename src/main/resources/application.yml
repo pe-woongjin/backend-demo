@@ -1,4 +1,4 @@
-## mvn clean package -P dev
+## mvn clean package -Dspring.profiles.active=dev
 ## java -jar -Dspring.profiles.active=dev backend-demo-1.0.0-SNAPSHOT.jar
 
 server:
