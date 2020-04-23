@@ -25,5 +25,5 @@
     $ java -jar backend-demo-1.0.0-SNAPSHOT.jar
     
 ##### 4. 확인
-    127.0.0.1:8080/swagger-ui.html 에서 REST API 확인이 가능합니다.
+    127.0.0.1:8080/swagger-ui.html 에서 REST API 확인하실 수 있습니다.
 
