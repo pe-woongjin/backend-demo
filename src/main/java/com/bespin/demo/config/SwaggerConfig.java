@@ -1,5 +1,6 @@
 package com.bespin.demo.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -18,6 +19,9 @@ import java.util.Collections;
 @EnableSwagger2
 public class SwaggerConfig implements WebMvcConfigurer {
 
+    @Value("${aws.alb.dns}")
+    public String dns;
+
     @Bean
     public Docket docket() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -32,10 +36,10 @@ public class SwaggerConfig implements WebMvcConfigurer {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "Woonjin Backend-demo REST API",
-                "API Information",
+                "Woongjin Backend-demo REST API",
+                "UI Information : " + dns,
                 "2.9.2",
-                "Terms of service",
+                "",
                 new Contact("Woonjin", "www.wjthinkbig.com", ""),
                 "", "", Collections.emptyList());
     }
