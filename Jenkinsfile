@@ -71,10 +71,9 @@ zip -r "${env.BUNDLE_NAME}" deploy-bundle
       steps {
         echo 'Triggering codeDeploy ${env.deployment_target}'
         sh '''
-      aws deploy create-deployment \
-      --application-name "demo-apne2-api-codedeploy" --deployment-group-name "demo-api-group-a" \
+      aws deploy create-deployment --application-name "demo-apne2-api-codedeploy" --deployment-group-name "demo-api-group-a" \
       --description "deploy backend-demo" \
-      --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \      
+      --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
       --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
       '''
       }
