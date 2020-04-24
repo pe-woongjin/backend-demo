@@ -59,9 +59,9 @@ mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
-zip -r ${env.BUNDLE_NAME} deploy-bundle
+zip -r ${BUNDLE_NAME} deploy-bundle
 '''
-        s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${env.BUNDLE_NAME}', path: 'backend')
+        s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${BUNDLE_NAME}', path: 'backend')
       }
     }
 
@@ -73,7 +73,7 @@ zip -r ${env.BUNDLE_NAME} deploy-bundle
 
     stage('Deploy') {
       steps {
-        echo 'Triggering codeDeploy ${env.deployment_target}'
+        echo 'Triggering codeDeploy ${deployment_target}'
         sh '''
       aws deploy create-deployment --application-name "demo-apne2-api-codedeploy" --deployment-group-name "demo-api-group-a" \
       --description "deploy backend-demo" \
