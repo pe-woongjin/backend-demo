@@ -10,10 +10,8 @@ pipeline {
 
   stages {
     stage('Pre-Process') {
-      
-        
-      def deployment_target = "demo-api-group-a"
-      def deploymentid      = "deploymentid-xxxxx"
+      deployment_target = "demo-api-group-a"
+      deploymentid      = "deploymentid-xxxxx"
   
       
       steps {
