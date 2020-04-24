@@ -72,17 +72,19 @@ cp -rf scripts ./deploy-bundle
     }
 
     stage('Deploy') {
-      script {
-        echo 'Triggering codeDeploy ${deployment_target}'       
-        sh """
-      aws deploy create-deployment --application-name "demo-apne2-dev-api-cd" --deployment-group-name "group-a" \
-      --description "deploy backend-demo" \
-      --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
-      --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
-      """
-        def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
-        echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
-      }
+      steps {
+        script {
+            echo 'Triggering codeDeploy ${deployment_target}'       
+             """
+          aws deploy create-deployment --application-name "demo-apne2-dev-api-cd" --deployment-group-name "group-a" \
+          --description "deploy backend-demo" \
+          --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
+          --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+          """
+            def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
+            echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
+         }
+       }
     }
 
     stage('Health-Check') {
