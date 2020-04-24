@@ -13,11 +13,9 @@ pipeline {
   }
   
   stages {
-
     
     stage('Pre-Process') {
 
-  
       steps {
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
@@ -30,7 +28,6 @@ pipeline {
     stage('Build') {
       steps {
         echo 'Build backend-demo'
-        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         sh 'mvn clean package -Dmaven.test.skip=true'
       }
     }
@@ -39,7 +36,6 @@ pipeline {
       parallel {
         stage('Inspection') {
           steps {
-            echo "BUNDLE_NAME: ${BUNDLE_NAME}"
             echo 'Execute Code-Inspection like sonarqube'
           }
         }
@@ -55,16 +51,15 @@ pipeline {
 
     stage('Upload-Bundle') {
       steps {
-        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
-        echo 'build codedeploy bundle: ${BUILD_NUMBER}'
+        echo "build codedeploy bundle: ${BUILD_NUMBER}"
         sh '''
 mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
-zip -r ${BUNDLE_NAME} deploy-bundle
 '''
-        s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${BUNDLE_NAME}', path: 'backend')
+        sh "zip -r ${BUNDLE_NAME} deploy-bundle"        
+        s3Upload(bucket: "opsflex-cicd-mgmt", file: "${BUNDLE_NAME}", path: "backend")
       }
     }
 
