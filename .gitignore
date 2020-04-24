@@ -24,3 +24,6 @@ hs_err_pid*
 /.idea/
 /backend-demo.iml
 /target/
+
+# ehcache
+/tmp/ehcache

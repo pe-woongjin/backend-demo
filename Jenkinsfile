@@ -9,8 +9,8 @@ pipeline {
 
     stage('Build') {
       steps {
-        echo '* Backend-demo build.'
-        sh 'mvn package -Dspring.profiles.active=dev'
+        echo 'Build backend-demo'
+        sh 'mvn clean package -Dmaven.test.skip=true'
       }
     }
 
@@ -34,12 +34,15 @@ pipeline {
     stage('Upload-Bundle') {
       steps {
         echo 'build codedeploy bundle'
-        sh '''mkdir deploy/scripts
-cp appspec.yml deploy
-cp target/backend-demo.jar ./deploy/
-cp -rf scripts ./deploy
-zip -r deploy.zip deploy'''
-        s3Upload(bucket: 'opsflex-cicd-mgmt', file: 'deploy.zip', path: 'backend')
+        sh '''
+mkdir deploy-bundle/scripts
+cp appspec.yml ./deploy-bundle
+cp target/backend-demo.jar ./deploy-bundle/
+cp -rf scripts ./deploy-bundle
+export NOW=`date "+%Y%m%d-%H%M%S"`
+zip -r deploy-bundle-${NOW}.zip deploy-bundle
+'''
+        s3Upload(bucket: 'opsflex-cicd-mgmt', file: 'deploy-bundle-${NOW}.zip', path: 'backend')
       }
     }
 
