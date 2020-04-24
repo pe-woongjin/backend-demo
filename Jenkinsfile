@@ -6,16 +6,22 @@ def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
 def deployment_target = "demo-api-group-a"
 def deploymentid = "aaa"
 
-pipeline {
+node {
   agent any
 
+  environment {
+     deployment_target = "demo-api-group-a"
+     deploymentid      = ""
+  }
+  
   stages {
-    stage('Pre-Process') {
-        
-      steps {
 
-        deployment_target = "demo-api-group-a"
-        deploymentid      = "deploymentid-xxxxx"
+    
+    stage('Pre-Process') {
+
+  
+      steps {
+        deploymentid      = "deployment-id-901922"
 
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
