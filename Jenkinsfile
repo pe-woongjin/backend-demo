@@ -3,6 +3,8 @@ def S3_BUCKET = "opsflex-cicd-mgmt"
 def S3_PATH = "backend"
 def VERSION = "${BUILD_NUMBER}"
 def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
+def DEPLOY_APP = "demo-apne2-dev-api-cd"
+
 
 pipeline {
   agent any
@@ -71,9 +73,9 @@ cp -rf scripts ./deploy-bundle
 
     stage('Deploy') {
       steps {
-        echo 'Triggering codeDeploy ${deployment_target}'
+        echo 'Triggering codeDeploy ${deployment_target}'       
         sh '''
-      aws deploy create-deployment --application-name "demo-apne2-api-cd" --deployment-group-name "group-a" \
+      aws deploy create-deployment --application-name "demo-apne2-dev-api-cd" --deployment-group-name "group-a" \
       --description "deploy backend-demo" \
       --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
       --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
