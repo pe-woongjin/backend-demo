@@ -53,7 +53,7 @@ pipeline {
 
     stage('Upload-Bundle') {
       steps {
-        echo 'build codedeploy bundle'
+        echo 'build codedeploy bundle: ${BUILD_NUMBER}'
         sh '''
 mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
