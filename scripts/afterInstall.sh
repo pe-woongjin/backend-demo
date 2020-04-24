@@ -1,2 +1,2 @@
-#! /bin/bash
-echo aws code deploy after install
+#!/bin/bash
+echo "afterInstall"

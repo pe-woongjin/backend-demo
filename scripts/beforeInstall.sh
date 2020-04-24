@@ -1,2 +1,2 @@
-#! /bin/bash
-echo aws code deploy before install
+#!/bin/bash
+echo "beforeInstall"
