@@ -21,21 +21,15 @@ pipeline {
       steps {
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
-        echo "S3_PATH: ${S3_PATH}"
         echo "BUNDLE_NAME: ${BUNDLE_NAME}"
-        echo "VERSION: ${VERSION}"
-        
-        sh '''
-        echo "${BUILD_NUMBER}" 
-        echo "VERSION: ${VERSION}"
-        '''
+        echo "S3_PATH: ${S3_PATH}"
+        echo "VERSION: ${VERSION}"        
       }
     }
 
     stage('Build') {
       steps {
         echo 'Build backend-demo'
-        echo 'Version: $VERSION'
         sh 'mvn clean package -Dmaven.test.skip=true'
       }
     }
@@ -65,8 +59,6 @@ mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
-NOW=`date "+%Y%m%d-%H%M%S"`
-echo "$NOW"
 zip -r "${BUNDLE_NAME}" deploy-bundle
 '''
         s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${BUNDLE_NAME}', path: 'backend')
