@@ -15,6 +15,9 @@ pipeline {
     stage('Pre-Process') {
       steps {
         echo '* Backend-demo pipeline start.'
+        echo 'BUILD_NUMBER: ${env.BUILD_NUMBER}'
+        echo 'BUNDLE_NAME: ${env.BUNDLE_NAME}'
+        echo 'deployment_target: ${env.deployment_target}'
       }
     }
 
@@ -52,7 +55,7 @@ cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
 NOW=`date "+%Y%m%d-%H%M%S"`
 echo "$NOW"
-zip -r ${env.BUNDLE_NAME} deploy-bundle
+zip -r "${env.BUNDLE_NAME}" deploy-bundle
 '''
         s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${env.BUNDLE_NAME}', path: 'backend')
       }
@@ -68,11 +71,11 @@ zip -r ${env.BUNDLE_NAME} deploy-bundle
       steps {
         echo 'Triggering codeDeploy ${env.deployment_target}'
         sh '''
-deploymentid=aws deploy create-deployment \
+      aws deploy create-deployment \
       --application-name "demo-apne2-api-codedeploy" --deployment-group-name "demo-api-group-a" \
-      --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
       --description "deploy backend-demo" \
-      --region ap-northeast-2
+      --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \      
+      --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
       '''
       }
     }
