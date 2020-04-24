@@ -78,9 +78,10 @@ cp -rf scripts ./deploy-bundle
           """
             //  def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
             // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
+          
+          def aaa = script {sh "cat DEPLOYMENT_ID.json"}
+          echo "${aaa}"
         }
-        def aaa = script {sh "cat DEPLOYMENT_ID.json"}
-        echo "${aaa}"
       }
     }
 
