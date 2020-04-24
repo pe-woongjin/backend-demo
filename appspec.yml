@@ -1,0 +1,22 @@
+version: 0.0
+os: linux
+files:
+  - source: ./target/backend-demo-1.0.0-SNAPSHOT.jar
+    destination: /home/ubuntu
+hooks:
+  BeforeInstall:
+    - location: scripts/beforeInstall.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: scripts/afterInstall.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/applicationStart.sh
+      timeout: 300
+      runas: root
+  ApplicationStop:
+    - location: scripts/applicationStop.sh
+      timeout: 300
+      runas: root
