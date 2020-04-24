@@ -19,7 +19,8 @@ pipeline {
     stage('Pre-Process') {
       steps {
         echo '* Backend-demo pipeline start.'
-        echo "BUILD_NUMBER: ${env.BUILD_NUMBER}"
+        echo "BUILD_NUMBER: ${BUILD_NUMBER}"
+        echo "S3_PATH: ${S3_PATH}"
         echo "BUNDLE_NAME: ${env.BUNDLE_NAME}"
         echo "deployment_target: ${env.deployment_target}"
         sh '''
