@@ -23,8 +23,6 @@ pipeline {
         echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         echo "VERSION: ${VERSION}"
         
-        def VERSION = "2020"
-        
         sh '''
         echo "${BUILD_NUMBER}" 
         echo "VERSION: ${VERSION}"
@@ -33,8 +31,10 @@ pipeline {
     }
 
     stage('Build') {
+      VERSION = "2020"
       steps {
         echo 'Build backend-demo'
+        echo 'Version: $VERSION'
         sh 'mvn clean package -Dmaven.test.skip=true'
       }
     }
