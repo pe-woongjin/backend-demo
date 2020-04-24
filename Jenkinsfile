@@ -35,7 +35,7 @@ pipeline {
       steps {
         echo 'build codedeploy bundle'
         sh '''
-mkdir deploy-bundle/scripts
+mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
