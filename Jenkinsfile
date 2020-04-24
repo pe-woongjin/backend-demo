@@ -3,23 +3,26 @@ def S3_BUCKET = "opsflex-cicd-mgmt"
 def S3_PATH = "backend"
 def VERSION = "${BUILD_NUMBER}"
 def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
-
+def deployment_target = "demo-api-group-a"
+def deploymentid = "aaa"
 
 pipeline {
   agent any
 
   stages {
     stage('Pre-Process') {
-      deployment_target = "demo-api-group-a"
-      deploymentid      = "deploymentid-xxxxx"
-  
-      
+        
       steps {
+
+        deployment_target = "demo-api-group-a"
+        deploymentid      = "deploymentid-xxxxx"
+
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
         echo "S3_PATH: ${S3_PATH}"
         echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         echo "VERSION: ${VERSION}"
+        echo "deploymentid: ${deploymentid}"
         
         sh '''
         echo "${BUILD_NUMBER}" 
