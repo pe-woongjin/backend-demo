@@ -19,8 +19,6 @@ pipeline {
 
   
       steps {
-        deploymentid      = "deployment-id-901922"
-
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
         echo "S3_PATH: ${S3_PATH}"
