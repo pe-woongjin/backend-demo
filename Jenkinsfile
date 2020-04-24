@@ -34,7 +34,6 @@ pipeline {
     }
 
     stage('Build') {
-      VERSION = "2020"
       steps {
         echo 'Build backend-demo'
         echo 'Version: $VERSION'
