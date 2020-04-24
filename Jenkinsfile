@@ -24,7 +24,6 @@ pipeline {
         echo "S3_PATH: ${S3_PATH}"
         echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         echo "VERSION: ${VERSION}"
-        echo "deploymentid: ${deploymentid}"
         
         sh '''
         echo "${BUILD_NUMBER}" 
