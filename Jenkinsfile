@@ -1,8 +1,8 @@
 environment {
   S3_BUCKET = "opsflex-cicd-mgmt"
   S3_PATH = "backend"
-  VERSION = "${env.BUILD_NUMBER}"
-  BUNDLE_NAME = "deploy-bundle-${env.BUILD_NUMBER}.zip"
+  VERSION = "${BUILD_NUMBER}"
+  BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
 }
 
 
@@ -21,8 +21,8 @@ pipeline {
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
         echo "S3_PATH: ${S3_PATH}"
-        echo "BUNDLE_NAME: ${env.BUNDLE_NAME}"
-        echo "deployment_target: ${env.deployment_target}"
+        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
+        echo "deployment_target: ${deployment_target}"
         sh '''
         echo "${env.BUILD_NUMBER}" '''
       }
@@ -62,9 +62,9 @@ cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
 NOW=`date "+%Y%m%d-%H%M%S"`
 echo "$NOW"
-zip -r "${env.BUNDLE_NAME}" deploy-bundle
+zip -r "${BUNDLE_NAME}" deploy-bundle
 '''
-        s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${env.BUNDLE_NAME}', path: 'backend')
+        s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${BUNDLE_NAME}', path: 'backend')
       }
     }
 
