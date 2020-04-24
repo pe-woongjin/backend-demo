@@ -39,10 +39,11 @@ mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
-export NOW=`date "+%Y%m%d-%H%M%S"`
-zip -r deploy-bundle-${NOW}.zip deploy-bundle
+NOW=`date "+%Y%m%d-%H%M%S"`
+echo "$NOW"
+zip -r deploy-bundle.zip deploy-bundle
 '''
-        s3Upload(bucket: 'opsflex-cicd-mgmt', file: 'deploy-bundle-${NOW}.zip', path: 'backend')
+        s3Upload(bucket: 'opsflex-cicd-mgmt', file: 'deploy-bundle.zip', path: 'backend')
       }
     }
 
