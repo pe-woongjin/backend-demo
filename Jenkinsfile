@@ -1,30 +1,34 @@
-environment {
-  S3_BUCKET = "opsflex-cicd-mgmt"
-  S3_PATH = "backend"
-  VERSION = "${BUILD_NUMBER}"
-  BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
-}
+
+def S3_BUCKET = "opsflex-cicd-mgmt"
+def S3_PATH = "backend"
+def VERSION = "${BUILD_NUMBER}"
+def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
 
 
 pipeline {
   agent any
 
-  environment {
-    VERSION = "2020"
-    deployment_target = "demo-api-group-a"
-    deploymentid      = "deploymentid-xxxxx"
-  }
-
   stages {
     stage('Pre-Process') {
+      
+        
+      def deployment_target = "demo-api-group-a"
+      def deploymentid      = "deploymentid-xxxxx"
+  
+      
       steps {
         echo '* Backend-demo pipeline start.'
         echo "BUILD_NUMBER: ${BUILD_NUMBER}"
         echo "S3_PATH: ${S3_PATH}"
         echo "BUNDLE_NAME: ${BUNDLE_NAME}"
-        echo "deployment_target: ${deployment_target}"
+        echo "VERSION: ${VERSION}"
+        
+        def VERSION = "2020"
+        
         sh '''
-        echo "${env.BUILD_NUMBER}" '''
+        echo "${BUILD_NUMBER}" 
+        echo "VERSION: ${VERSION}"
+        '''
       }
     }
 
