@@ -59,7 +59,7 @@ mkdir -p deploy-bundle/scripts
 cp appspec.yml ./deploy-bundle
 cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
-zip -r "${env.BUNDLE_NAME}" deploy-bundle
+zip -r ${env.BUNDLE_NAME} deploy-bundle
 '''
         s3Upload(bucket: 'opsflex-cicd-mgmt', file: '${env.BUNDLE_NAME}', path: 'backend')
       }
