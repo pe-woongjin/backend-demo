@@ -72,7 +72,7 @@ cp -rf scripts ./deploy-bundle
     }
 
     stage('Deploy') {
-      steps {
+      script {
         echo 'Triggering codeDeploy ${deployment_target}'       
         sh """
       aws deploy create-deployment --application-name "demo-apne2-dev-api-cd" --deployment-group-name "group-a" \
