@@ -8,11 +8,6 @@ def DEPLOY_APP = "demo-apne2-dev-api-cd"
 
 pipeline {
   agent any
-
-  environment {
-     deployment_target = "demo-api-group-a"
-     deploymentid      = ""
-  }
   
   stages {
     
@@ -81,10 +76,11 @@ cp -rf scripts ./deploy-bundle
           --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
           --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
-            def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
-            echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
-         }
-       }
+            //  def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
+            // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
+        }
+        sh "cat DEPLOYMENT_ID.json"
+      }
     }
 
     stage('Health-Check') {
