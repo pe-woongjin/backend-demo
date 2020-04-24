@@ -22,6 +22,8 @@ pipeline {
         echo 'BUILD_NUMBER: ${env.BUILD_NUMBER}'
         echo 'BUNDLE_NAME: ${env.BUNDLE_NAME}'
         echo 'deployment_target: ${env.deployment_target}'
+        sh '''
+        echo ${env.BUILD_NUMBER}'''
       }
     }
 
