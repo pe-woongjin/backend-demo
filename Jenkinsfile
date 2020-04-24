@@ -30,6 +30,7 @@ pipeline {
     stage('Build') {
       steps {
         echo 'Build backend-demo'
+        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         sh 'mvn clean package -Dmaven.test.skip=true'
       }
     }
@@ -38,6 +39,7 @@ pipeline {
       parallel {
         stage('Inspection') {
           steps {
+            echo "BUNDLE_NAME: ${BUNDLE_NAME}"
             echo 'Execute Code-Inspection like sonarqube'
           }
         }
@@ -53,6 +55,7 @@ pipeline {
 
     stage('Upload-Bundle') {
       steps {
+        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
         echo 'build codedeploy bundle: ${BUILD_NUMBER}'
         sh '''
 mkdir -p deploy-bundle/scripts
