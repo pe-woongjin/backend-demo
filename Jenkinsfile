@@ -62,6 +62,8 @@ zip -r deploy-bundle.zip deploy-bundle
     stage('Health-Check') {
       steps {
         echo 'health check target-group'
+        echo 'waiting codedeploy processing...'
+        awaitDeploymentCompletion 'deploymentid-xxxx'
       }
     }
 
