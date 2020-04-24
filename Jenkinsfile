@@ -1,5 +1,3 @@
-def NOW=`date "+%Y%m%d-%H%M%S"`
-
 def VERSION = "${env.BUILD_NUMBER}"
 def BUNDLE_NAME = "deploy-bundle-${env.BUILD_NUMBER}.zip"
 def S3_BUCKET = "opsflex-cicd-mgmt"
