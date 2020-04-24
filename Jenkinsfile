@@ -19,11 +19,11 @@ pipeline {
     stage('Pre-Process') {
       steps {
         echo '* Backend-demo pipeline start.'
-        echo 'BUILD_NUMBER: ${env.BUILD_NUMBER}'
-        echo 'BUNDLE_NAME: ${env.BUNDLE_NAME}'
-        echo 'deployment_target: ${env.deployment_target}'
+        echo "BUILD_NUMBER: ${env.BUILD_NUMBER}"
+        echo "BUNDLE_NAME: ${env.BUNDLE_NAME}"
+        echo "deployment_target: ${env.deployment_target}"
         sh '''
-        echo ${env.BUILD_NUMBER}'''
+        echo "${env.BUILD_NUMBER}" '''
       }
     }
 
