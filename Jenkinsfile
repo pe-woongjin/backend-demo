@@ -3,8 +3,6 @@ def S3_BUCKET = "opsflex-cicd-mgmt"
 def S3_PATH = "backend"
 def VERSION = "${BUILD_NUMBER}"
 def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
-def deployment_target = "demo-api-group-a"
-def deploymentid = "aaa"
 
 pipeline {
   agent any
