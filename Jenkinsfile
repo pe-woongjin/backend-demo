@@ -6,7 +6,7 @@ def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
 def deployment_target = "demo-api-group-a"
 def deploymentid = "aaa"
 
-node {
+pipeline {
   agent any
 
   environment {
