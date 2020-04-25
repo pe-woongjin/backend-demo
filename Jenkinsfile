@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 
 def VERSION         = "${BUILD_NUMBER}"
 def BUNDLE_NAME     = "deploy-bundle-${BUILD_NUMBER}.zip"
@@ -92,7 +93,8 @@ zip -r ${BUNDLE_NAME} ./
               --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
         """
         script {
-          def resultTgName = script {sh "cat TARGET_GROUP_NAME.json"}
+          def tgJsonText = new JsonSlurper().parseText( readFile("TARGET_GROUP_NAME.json") )
+
           echo "${resultTgName}"
         }
       }
