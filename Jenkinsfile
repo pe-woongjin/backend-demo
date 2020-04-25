@@ -73,7 +73,7 @@ cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
 '''
         sh "zip -r ${BUNDLE_NAME} deploy-bundle"        
-        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "${BUNDLE_NAME}", path: "${S3_PATH}")
+        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
       }
     }
 
