@@ -67,11 +67,12 @@ pipeline {
       steps {
         echo "build codedeploy bundle: ${BUILD_NUMBER}"
         sh '''
+rm -rf ./deploy-bundle
 mkdir -p deploy-bundle/scripts
-cp appspec.yml ./deploy-bundle
-cp target/backend-demo.jar ./deploy-bundle/
-cp -rf scripts ./deploy-bundle
-cd deploy-bundle
+cp ./appspec.yml ./deploy-bundle
+cp ./target/backend-demo.jar ./deploy-bundle/
+cp -rf ./scripts ./deploy-bundle
+cd ./deploy-bundle
 '''
         sh "zip -r ${BUNDLE_NAME} ./"        
         s3Upload(bucket: "${S3_BUCKET_NAME}", file: "${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
