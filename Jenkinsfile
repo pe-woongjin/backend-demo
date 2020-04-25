@@ -79,17 +79,16 @@ cp -rf scripts ./deploy-bundle
 
     stage('Discovery-ActiveTarget') {
       steps {
-        echo 'descovery active target-group for blue/green'
+        echo "descovery active target-group for blue/green"
         
         sh"""
           aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
               --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
               --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
-          """
-        
-        script{
-          def resultTGname = script {sh "cat TARGET_GROUP_NAME.json"}
-          echo "${resultTGname}"
+        """
+        script {
+          def resultTgName = script {sh "cat TARGET_GROUP_NAME.json"}
+          echo "${resultTgName}"
         }
       }
     }
@@ -97,7 +96,7 @@ cp -rf scripts ./deploy-bundle
     stage('Deploy') {
       steps {
         
-        sh """
+        sh"""
         aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
             --desired-capacity ${ASG_CAPACITY} \
             --min-size ${ASG_MIN} \
