@@ -1,16 +1,28 @@
 
-def S3_BUCKET = "opsflex-cicd-mgmt"
-def S3_PATH = "backend"
-def VERSION = "${BUILD_NUMBER}"
-def BUNDLE_NAME = "deploy-bundle-${BUILD_NUMBER}.zip"
-def DEPLOY_APP = "demo-apne2-dev-api-cd"
+def VERSION         = "${BUILD_NUMBER}"
+def BUNDLE_NAME     = "deploy-bundle-${BUILD_NUMBER}.zip"
 
+
+// 
+def ALB_ARN         = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:loadbalancer/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c"
+def TARGET_GROUP    = "demo-apne2-dev-api"
+
+// aws-autoscaling-group
+def ASG_A_NAME      = "demo-apne2-dev-api-a-asg"
+def ASG_B_NAME      = "demo-apne2-dev-api-b-asg"
+def ASG_CAPACITY    = 1
+def ASG_MIN         = 1
+
+// aws-codedeploy
+def CD_APP_NAME     = "demo-apne2-dev-api-cd"
+def S3_BUCKET_NAME  = "opsflex-cicd-mgmt"
+def S3_PATH         = "backend"
 
 pipeline {
   agent any
   
   stages {
-    
+
     stage('Pre-Process') {
 
       steps {
@@ -20,6 +32,7 @@ pipeline {
         echo "S3_PATH: ${S3_PATH}"
         echo "VERSION: ${VERSION}"        
       }
+
     }
 
     stage('Build') {
@@ -34,12 +47,16 @@ pipeline {
         stage('Inspection') {
           steps {
             echo 'Execute Code-Inspection like sonarqube'
+            script {
+              VERSION = "1.0.0-snapshot"
+            }
           }
         }
 
         stage('Coverage') {
           steps {
             echo 'Unit test like JUnit'
+            echo "VERSION: ${VERSION}"
           }
         }
 
@@ -56,27 +73,41 @@ cp target/backend-demo.jar ./deploy-bundle/
 cp -rf scripts ./deploy-bundle
 '''
         sh "zip -r ${BUNDLE_NAME} deploy-bundle"        
-        s3Upload(bucket: "opsflex-cicd-mgmt", file: "${BUNDLE_NAME}", path: "backend")
+        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "${BUNDLE_NAME}", path: "${S3_PATH}")
       }
     }
 
     stage('Discovery-ActiveTarget') {
       steps {
         echo 'descovery active target-group for blue/green'
+        
+        script{
+          """
+          aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
+          --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
+          --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
+          """
+        }
       }
     }
 
     stage('Deploy') {
       steps {
+        
+        sh "aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
+        --desired-capacity ${ASG_CAPACITY} 
+        --min-size ${ASG_MIN}"""
+        
         script {
             echo 'Triggering codeDeploy ${deployment_target}'       
              """
-          aws deploy create-deployment --application-name "demo-apne2-dev-api-cd" --deployment-group-name "group-a" \
-          --description "deploy backend-demo" \
-          --s3-location bucket="demo-apne2-cicd-mgmt",key=backend/deploy-bundle.zip,bundleType=zip \
-          --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+          aws deploy create-deployment --application-name "${CD_APP_NAME}" \
+            --deployment-group-name "group-a" \
+            --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
+            --s3-location bucket="${S3_BUCKET_NAME}",key=backend/${BUNDLE_NAME}.zip,bundleType=zip \
+            --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
-            //  def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
+            // def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
             // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
           
           def aaa = script {sh "cat DEPLOYMENT_ID.json"}
@@ -102,6 +133,12 @@ cp -rf scripts ./deploy-bundle
     stage('Stopping Blue instances') {
       steps {
         echo 'stop blue target-group instances.'
+       script{
+         """
+        aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-b-asg  \
+          --desired-capacity 0 --min-size 0 --default-cooldown 90
+         """
+       }
       }
     }
 
