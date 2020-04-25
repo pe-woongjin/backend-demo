@@ -140,7 +140,8 @@ cp -rf scripts ./deploy-bundle
        script{
          """
         aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-b-asg  \
-          --desired-capacity 0 --min-size 0 --default-cooldown 90
+          --desired-capacity 0 --min-size 0 --default-cooldown 90 \
+          --region ap-northeast-2 
          """
        }
       }
