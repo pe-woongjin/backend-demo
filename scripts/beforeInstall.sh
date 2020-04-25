@@ -2,4 +2,5 @@
 echo "beforeInstall"
 
 echo "beforeInstall" > beforeinstall
-mkdir ~/app -p
+echo whoami >> beforeinstall
+mkdir /home/ec2-user/app -p
