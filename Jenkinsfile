@@ -84,8 +84,8 @@ cp -rf scripts ./deploy-bundle
         script{
           """
           aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
-          --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
-          --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
+              --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
+              --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
           """
         }
       }
@@ -96,8 +96,9 @@ cp -rf scripts ./deploy-bundle
         
         sh """
         aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
-        --desired-capacity ${ASG_CAPACITY} 
-        --min-size ${ASG_MIN}
+            --desired-capacity ${ASG_CAPACITY} \
+            --min-size ${ASG_MIN} \
+            --region ap-northeast-2
         
         sleep 5
         """
@@ -106,10 +107,10 @@ cp -rf scripts ./deploy-bundle
             echo 'Triggering codeDeploy ${deployment_target}'       
              """
           aws deploy create-deployment --application-name "${CD_APP_NAME}" \
-            --deployment-group-name "group-a" \
-            --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
-            --s3-location bucket="${S3_BUCKET_NAME}",key=backend/${BUNDLE_NAME}.zip,bundleType=zip \
-            --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+              --deployment-group-name "group-a" \
+              --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
+              --s3-location bucket="${S3_BUCKET_NAME}",key=backend/${BUNDLE_NAME}.zip,bundleType=zip \
+              --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
             // def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
             // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
@@ -140,8 +141,8 @@ cp -rf scripts ./deploy-bundle
        script{
          """
         aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-b-asg  \
-          --desired-capacity 0 --min-size 0 --default-cooldown 90 \
-          --region ap-northeast-2 
+            --desired-capacity 0 --min-size 0 --default-cooldown 90 \
+            --region ap-northeast-2 
          """
        }
       }
