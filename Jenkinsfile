@@ -106,10 +106,10 @@ cp -rf scripts ./deploy-bundle
         echo "Triggering codeDeploy: "
         sh"""
           aws deploy create-deployment \
-              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME}.zip,bundleType=zip \
+              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
               --application-name "${CD_APP_NAME}" \
               --deployment-group-name "group-a" \
-              --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
+              --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
         script {
