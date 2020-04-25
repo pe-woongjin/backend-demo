@@ -1,8 +1,9 @@
 version: 0.0
 os: linux
 files:
-  - source: ./target/backend-demo-1.0.0-SNAPSHOT.jar
+  - source: /backend-demo.jar
     destination: /home/ec2-user/app
+    overwrite: yes
 permission:
   - object: /
     pattern: *
