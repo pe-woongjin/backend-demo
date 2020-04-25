@@ -93,7 +93,7 @@ zip -r ${BUNDLE_NAME} ./
               --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
         """
         script {
-          def tgJsonText = new JsonSlurper().parseText( readFile("TARGET_GROUP_NAME.json") )
+          def resultTgName = readFile("TARGET_GROUP_NAME.json")
 
           echo "${resultTgName}"
         }
