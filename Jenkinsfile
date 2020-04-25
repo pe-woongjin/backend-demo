@@ -10,8 +10,8 @@ def TARGET_GROUP    = "demo-apne2-dev-api"
 // aws-autoscaling-group
 def ASG_A_NAME      = "demo-apne2-dev-api-a-asg"
 def ASG_B_NAME      = "demo-apne2-dev-api-b-asg"
-def ASG_ACTIVE_NAME   = "${ASG_B_NAME}"
-def ASG_DEACTIVE_NAME = "${ASG_A_NAME}"
+def ASG_ACTIVE_NAME   = "${ASG_A_NAME}"
+def ASG_DEACTIVE_NAME = "${ASG_B_NAME}"
 def ASG_CAPACITY    = 1
 def ASG_MIN         = 1
 
