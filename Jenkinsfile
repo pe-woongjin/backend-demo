@@ -16,7 +16,7 @@ def ASG_MIN         = 1
 // aws-codedeploy
 def CD_APP_NAME     = "demo-apne2-dev-api-cd"
 def S3_BUCKET_NAME  = "opsflex-cicd-mgmt"
-def S3_PATH         = "backend"
+def S3_PATH         = "backend/${BUILD_NUMBER}"
 
 pipeline {
   agent any
@@ -109,7 +109,7 @@ cp -rf scripts ./deploy-bundle
           aws deploy create-deployment --application-name "${CD_APP_NAME}" \
               --deployment-group-name "group-a" \
               --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
-              --s3-location bucket="${S3_BUCKET_NAME}",key=backend/${BUNDLE_NAME}.zip,bundleType=zip \
+              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME}.zip,bundleType=zip \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
             // def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
