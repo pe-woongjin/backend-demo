@@ -10,11 +10,14 @@ def TARGET_GROUP    = "demo-apne2-dev-api"
 // aws-autoscaling-group
 def ASG_A_NAME      = "demo-apne2-dev-api-a-asg"
 def ASG_B_NAME      = "demo-apne2-dev-api-b-asg"
+def ASG_ACTIVE_NAME   = "${ASG_B_NAME}"
+def ASG_DEACTIVE_NAME = "${ASG_A_NAME}"
 def ASG_CAPACITY    = 1
 def ASG_MIN         = 1
 
 // aws-codedeploy
 def CD_APP_NAME     = "demo-apne2-dev-api-cd"
+def CD_DG_NAME      = "group-b"
 def S3_BUCKET_NAME  = "opsflex-cicd-mgmt"
 def S3_PATH         = "backend"
 
@@ -99,7 +102,7 @@ zip -r ${BUNDLE_NAME} ./
       steps {
         
         sh"""
-        aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
+        aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${ASG_ACTIVE_NAME}  \
             --desired-capacity ${ASG_CAPACITY} \
             --min-size ${ASG_MIN} \
             --region ap-northeast-2
@@ -111,9 +114,7 @@ zip -r ${BUNDLE_NAME} ./
         sh"""
           aws deploy create-deployment \
               --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
-              --application-name "${CD_APP_NAME}" \
-              --deployment-group-name "group-a" \
-              --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}" \
+              --application-name "${CD_APP_NAME}" --deployment-group-name "${CD_DG_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
         script {
@@ -145,7 +146,7 @@ zip -r ${BUNDLE_NAME} ./
         echo 'stop blue target-group instances.'
        script{
          """
-        aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-b-asg  \
+        aws autoscaling update-auto-scaling-group --auto-scaling-group-name "${ASG_DEACTIVE_NAME}"  \
             --desired-capacity 0 --min-size 0 --default-cooldown 90 \
             --region ap-northeast-2 
          """
