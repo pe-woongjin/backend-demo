@@ -1,23 +1,29 @@
 version: 0.0
 os: linux
 files:
-  - source: /
+  - source: /target/backend-demo.jar
     destination: /home/ec2-user/app/
+    overwrite: true
+permission:
+  - object: /
+    pattern: *
+    owner: ec2-user
+    group: ec2-user
 
 hooks:
   BeforeInstall:
     - location: scripts/beforeInstall.sh
       timeout: 60
-      runas: root
+      runas: ec2-user
   AfterInstall:
     - location: scripts/afterInstall.sh
       timeout: 60
-      runas: root
+      runas: ec2-user
   ApplicationStart:
     - location: scripts/applicationStart.sh
       timeout: 60
-      runas: root
+      runas: ec2-user
   ApplicationStop:
     - location: scripts/applicationStop.sh
       timeout: 60
-      runas: root
+      runas: ec2-user
