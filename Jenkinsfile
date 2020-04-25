@@ -81,12 +81,15 @@ cp -rf scripts ./deploy-bundle
       steps {
         echo 'descovery active target-group for blue/green'
         
-        script{
-          """
+        sh"""
           aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
               --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
               --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
           """
+        
+        script{
+          def resultTGname = script {sh "cat TARGET_GROUP_NAME.json"}
+          echo "${resultTGname}"
         }
       }
     }
