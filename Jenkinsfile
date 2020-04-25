@@ -16,7 +16,7 @@ def ASG_MIN         = 1
 // aws-codedeploy
 def CD_APP_NAME     = "demo-apne2-dev-api-cd"
 def S3_BUCKET_NAME  = "opsflex-cicd-mgmt"
-def S3_PATH         = "backend/${BUILD_NUMBER}"
+def S3_PATH         = "backend"
 
 pipeline {
   agent any
@@ -104,7 +104,7 @@ zip -r ${BUNDLE_NAME} ./
             --min-size ${ASG_MIN} \
             --region ap-northeast-2
         
-        sleep 70
+        sleep 10
         """
         
         echo "Triggering codeDeploy: "
