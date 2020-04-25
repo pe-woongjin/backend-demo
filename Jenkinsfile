@@ -94,9 +94,13 @@ cp -rf scripts ./deploy-bundle
     stage('Deploy') {
       steps {
         
-        sh "aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
+        sh """
+        aws autoscaling update-auto-scaling-group --auto-scaling-group-name demo-apne2-dev-api-a-asg  \
         --desired-capacity ${ASG_CAPACITY} 
-        --min-size ${ASG_MIN}"""
+        --min-size ${ASG_MIN}
+        
+        sleep 5
+        """
         
         script {
             echo 'Triggering codeDeploy ${deployment_target}'       
