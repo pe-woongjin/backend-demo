@@ -104,7 +104,7 @@ zip -r ${BUNDLE_NAME} ./
             --min-size ${ASG_MIN} \
             --region ap-northeast-2
         
-        sleep 30
+        sleep 60
         """
         
         echo "Triggering codeDeploy: "
