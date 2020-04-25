@@ -103,15 +103,16 @@ cp -rf scripts ./deploy-bundle
         sleep 5
         """
         
-        script {
-            echo 'Triggering codeDeploy ${deployment_target}'       
-             """
-          aws deploy create-deployment --application-name "${CD_APP_NAME}" \
+        echo "Triggering codeDeploy: "
+        sh"""
+          aws deploy create-deployment \
+              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME}.zip,bundleType=zip \
+              --application-name "${CD_APP_NAME}" \
               --deployment-group-name "group-a" \
               --description "CodeDeploy triggered ${CD_APP_NAME}.group-a Bundle: backend/${BUNDLE_NAME}.zip" \
-              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME}.zip,bundleType=zip \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
+        script {
             // def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
             // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
           
