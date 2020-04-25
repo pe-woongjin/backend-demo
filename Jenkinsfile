@@ -83,7 +83,7 @@ cp -rf scripts ./deploy-bundle
         
         sh"""
           aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
-              --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]'" \
+              --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]' \
               --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
         """
         script {
