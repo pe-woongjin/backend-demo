@@ -7,9 +7,6 @@ def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "backend"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
 
-// aws-autoscaling-group
-def ASG_A_NAME          = "demo-apne2-dev-api-a-asg"
-def ASG_B_NAME          = "demo-apne2-dev-api-b-asg"
 def CURR_ASG_NAME       = ""
 def NEXT_ASG_NAME       = ""
 def ASG_DESIERD         = 1
@@ -67,8 +64,8 @@ pipeline {
             showVariables()
             echo "Discovery Active Target-Group ---------------------"
             sh """
-              aws elbv2 describe-target-groups --load-balancer-arn "${env.ALB_ARN}" \
-                --query 'TargetGroups[?starts_with(TargetGroupName,`${env.TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
+              aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
+                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
                 --region ap-northeast-2 --output json > TARGET_GROUP_NAME.json
                """
             def textValue = readFile("TARGET_GROUP_NAME.json")
@@ -119,7 +116,7 @@ pipeline {
 
     stage('Upload-Bundle') {
       steps {
-        echo "Uploading Bundle '${env.BUNDLE_NAME}' to '${env.S3_PATH}/${env.BUNDLE_NAME}'"
+        echo "Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}'"
         sh """
 rm -rf ./deploy-bundle
 mkdir -p deploy-bundle/scripts
@@ -129,7 +126,7 @@ cp -rf ./scripts ./deploy-bundle
 cd ./deploy-bundle
 zip -r ${env.BUNDLE_NAME} ./
 """
-        s3Upload(bucket: "${env.S3_BUCKET_NAME}", file: "./deploy-bundle/${env.BUNDLE_NAME}", path: "${env.S3_PATH}/${env.BUNDLE_NAME}")
+        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
       }
     }
 
@@ -140,8 +137,8 @@ zip -r ${env.BUNDLE_NAME} ./
 
          sh"""
          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-             --desired-capacity ${env.ASG_CAPACITY} \
-             --min-size ${env.ASG_MIN} \
+             --desired-capacity ${ASG_CAPACITY} \
+             --min-size ${ASG_MIN} \
              --region ap-northeast-2
          """
 
@@ -157,8 +154,8 @@ zip -r ${env.BUNDLE_NAME} ./
         echo "Triggering codeDeploy "
         sh"""
           aws deploy create-deployment \
-              --s3-location bucket="${env.S3_BUCKET_NAME}",key=${env.S3_PATH}/${env.BUNDLE_NAME},bundleType=zip \
-              --application-name "${env.CD_APP_NAME}" --deployment-group-name "${env.CD_DG_NAME}" \
+              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
+              --application-name "${CD_APP_NAME}" --deployment-group-name "${env.CD_DG_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
         script {
