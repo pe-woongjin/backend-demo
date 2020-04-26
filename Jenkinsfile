@@ -75,11 +75,13 @@ pipeline {
          script {
             showVariables()
             echo "Discovery Active Target-Group ---------------------"
-            sh """
+            sh"""
               aws elbv2 describe-target-groups \
                 --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`]' \
                 --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
-               """
+                
+              cat ./TARGET_GROUP_LIST.json
+            """
             def textValue = readFile("TARGET_GROUP_LIST.json")
             def tgList = toJson(textValue)
             echo "Initialize Variables --------------------"
