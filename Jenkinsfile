@@ -84,6 +84,7 @@ pipeline {
             def textValue = readFile("TARGET_GROUP_LIST.json")
             def tgList = toJson(textValue)
             echo "Initialize Variables --------------------"
+            initVariables(tgList)
          }
       }
 
