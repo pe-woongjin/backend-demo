@@ -190,8 +190,8 @@ zip -r ${BUNDLE_NAME} ./
       steps {
         echo 'stop blue target-group instances.'
         script{
-           """
-          aws autoscaling update-auto-scaling-group --auto-scaling-group-name "${CURR_ASG_NAME}"  \
+          sh"""
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${CURR_ASG_NAME}  \
               --desired-capacity 0 --min-size 0 --default-cooldown 120 \
               --region ap-northeast-2
            """
