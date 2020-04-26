@@ -154,7 +154,7 @@ zip -r ${BUNDLE_NAME} ./
          """
 
          echo "Waiting boot-up ec2 instances: 2 mins."
-         sh "sleep 120"
+         sh "sleep 180"
       }
     }
 
