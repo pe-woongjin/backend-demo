@@ -31,25 +31,27 @@ def toJson(String text) {
 
 def initVariables(String tgVal) {
   if("demo-apne2-dev-api-a-tg8080" == tgVal) {
-    CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-    NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-    NEXT_TARGET_GROUP = "demo-apne2-dev-api-b-tg8080"
-    CD_DG_NAME        = "group-b"
+    env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+    env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+    env.NEXT_TARGET_GROUP = "demo-apne2-dev-api-b-tg8080"
+    env.CD_DG_NAME        = "group-b"
   }
   else {
-    CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-    NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-    NEXT_TARGET_GROUP = "demo-apne2-dev-api-a-tg8080"
-    CD_DG_NAME        = "group-a"
+    env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+    env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+    env.NEXT_TARGET_GROUP = "demo-apne2-dev-api-a-tg8080"
+    env.CD_DG_NAME        = "group-a"
   }
 }
 
 
-def showVariables() {
-  echo "CURR_ASG_NAME: ${CURR_ASG_NAME}"
-  echo "NEXT_ASG_NAME: ${NEXT_ASG_NAME}"
-  echo "NEXT_TARGET_GROUP: ${NEXT_TARGET_GROUP}"
-  echo "CD_DG_NAME: ${CD_DG_NAME}"
+def showVariables() {   
+  echo """
+CURR_ASG_NAME:     ${env.CURR_ASG_NAME}
+NEXT_ASG_NAME:     ${env.NEXT_ASG_NAME}
+NEXT_TARGET_GROUP: ${env.NEXT_TARGET_GROUP}
+CD_DG_NAME:        ${env.CD_DG_NAME}"""
+
 }
 
 pipeline {
@@ -65,8 +67,8 @@ pipeline {
             showVariables()
             echo "Discovery Active Target-Group ---------------------"
             sh """
-              aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
-                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
+              aws elbv2 describe-target-groups --load-balancer-arn "${env.ALB_ARN}" \
+                --query 'TargetGroups[?starts_with(TargetGroupName,`${env.TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
                 --region ap-northeast-2 --output json > TARGET_GROUP_NAME.json
                """
             def textValue = readFile("TARGET_GROUP_NAME.json")
@@ -117,7 +119,7 @@ pipeline {
 
     stage('Upload-Bundle') {
       steps {
-        echo "Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}'"
+        echo "Uploading Bundle '${env.BUNDLE_NAME}' to '${env.S3_PATH}/${env.BUNDLE_NAME}'"
         sh """
 rm -rf ./deploy-bundle
 mkdir -p deploy-bundle/scripts
@@ -125,9 +127,9 @@ cp ./appspec.yml ./deploy-bundle
 cp ./target/backend-demo.jar ./deploy-bundle/
 cp -rf ./scripts ./deploy-bundle
 cd ./deploy-bundle
-zip -r ${BUNDLE_NAME} ./
+zip -r ${env.BUNDLE_NAME} ./
 """
-        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
+        s3Upload(bucket: "${env.S3_BUCKET_NAME}", file: "./deploy-bundle/${env.BUNDLE_NAME}", path: "${env.S3_PATH}/${env.BUNDLE_NAME}")
       }
     }
 
@@ -137,9 +139,9 @@ zip -r ${BUNDLE_NAME} ./
       steps {
 
          sh"""
-         aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${NEXT_ASG_NAME} \
-             --desired-capacity ${ASG_CAPACITY} \
-             --min-size ${ASG_MIN} \
+         aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
+             --desired-capacity ${env.ASG_CAPACITY} \
+             --min-size ${env.ASG_MIN} \
              --region ap-northeast-2
          """
 
@@ -152,17 +154,17 @@ zip -r ${BUNDLE_NAME} ./
     stage('Deploy') {
       steps {
         
-        echo "Triggering codeDeploy: "
+        echo "Triggering codeDeploy "
         sh"""
           aws deploy create-deployment \
-              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
-              --application-name "${CD_APP_NAME}" --deployment-group-name "${CD_DG_NAME}" \
+              --s3-location bucket="${env.S3_BUCKET_NAME}",key=${env.S3_PATH}/${env.BUNDLE_NAME},bundleType=zip \
+              --application-name "${env.CD_APP_NAME}" --deployment-group-name "${env.CD_DG_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
         script {
           def textValue = readFile("DEPLOYMENT_ID.json")
           def jsonDI =toJson(textValue)
-          DEPLOYMENT_ID = "${jsonDI.deploymentId}"
+          env.DEPLOYMENT_ID = "${jsonDI.deploymentId}"
         }
       }
     }
@@ -173,7 +175,7 @@ zip -r ${BUNDLE_NAME} ./
         script {
           echo 'Waiting codedeploy processing...'
           sh """
-          awaitDeploymentCompletion "${DEPLOYMENT_ID}"
+          awaitDeploymentCompletion "${env.DEPLOYMENT_ID}"
           """
         }
 
@@ -191,7 +193,7 @@ zip -r ${BUNDLE_NAME} ./
         echo 'stop blue target-group instances.'
         script{
           sh"""
-          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${CURR_ASG_NAME}  \
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
               --desired-capacity 0 --min-size 0 --default-cooldown 120 \
               --region ap-northeast-2
            """
