@@ -21,8 +21,7 @@ def TG_RULE_ARN         = ""
 @NonCPS
 def toJson(String text) {
     def parser = new JsonSlurper()
-    def json = parser.parseText (text)
-    return json
+    return parser.parseText( text )
 }
 
 def initVariables(def tgList) {
