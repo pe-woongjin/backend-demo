@@ -124,7 +124,7 @@ cp ./appspec.yml ./deploy-bundle
 cp ./target/backend-demo.jar ./deploy-bundle/
 cp -rf ./scripts ./deploy-bundle
 cd ./deploy-bundle
-zip -r ${env.BUNDLE_NAME} ./
+zip -r ${BUNDLE_NAME} ./
 """
         s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
       }
