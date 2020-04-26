@@ -142,8 +142,8 @@ zip -r ${BUNDLE_NAME} ./
              --region ap-northeast-2
          """
 
-         echo "Waiting boot-up ec2 instances: 1 mins."
-         sh "sleep 60"
+         echo "Waiting boot-up ec2 instances: 2 mins."
+         sh "sleep 120"
       }
     }
 
