@@ -150,7 +150,7 @@ zip -r ${BUNDLE_NAME} ./
 
     stage('Deploy') {
       steps {
-        
+        showVariables()
         echo "Triggering codeDeploy "
         sh"""
           aws deploy create-deployment \
@@ -158,6 +158,7 @@ zip -r ${BUNDLE_NAME} ./
               --application-name "${CD_APP_NAME}" --deployment-group-name "${env.CD_DG_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
+          
         script {
           def textValue = readFile("DEPLOYMENT_ID.json")
           def jsonDI =toJson(textValue)
@@ -169,6 +170,7 @@ zip -r ${BUNDLE_NAME} ./
     stage('Health-Check') {
       steps {
         echo 'health check target-group'
+        echo "DEPLOYMENT_ID ${env.DEPLOYMENT_ID}"
         script {
           echo 'Waiting codedeploy processing...'
           // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
@@ -185,7 +187,7 @@ zip -r ${BUNDLE_NAME} ./
 
     stage('Stopping Blue instances') {
       steps {
-        echo 'stop blue target-group instances.'
+        echo "stop blue target-group instances. ${env.CURR_ASG_NAME}"
         script{
           sh"""
           aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
