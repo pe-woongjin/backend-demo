@@ -55,9 +55,7 @@ def showVariables() {
   echo """
 >   CURR_ASG_NAME:     ${env.CURR_ASG_NAME}
     NEXT_ASG_NAME:     ${env.NEXT_ASG_NAME}
-    CODE_DEPLOY_NAME:  ${CODE_DEPLOY_NAME}
     DEPLOY_GROUP_NAME: ${env.DEPLOY_GROUP_NAME}
-    BUNDLE_NAME:       ${BUNDLE_NAME}
     ALB_ARN:           ${env.ALB_ARN}
     NEXT_TG_ARN:       ${env.NEXT_TG_ARN}
     NEXT_TARGET_GROUP: ${env.NEXT_TARGET_GROUP}
