@@ -1,75 +1,123 @@
 import groovy.json.JsonSlurper
 
-def VERSION         = "${BUILD_NUMBER}"
-def BUNDLE_NAME     = "deploy-bundle-${BUILD_NUMBER}.zip"
+def ALB_ARN             = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:loadbalancer/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c"
+def TARGET_GROUP_PRIFIX = "demo-apne2-dev-api"
 
-
-// 
-def ALB_ARN         = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:loadbalancer/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c"
-def TARGET_GROUP    = "demo-apne2-dev-api"
+def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
+def S3_PATH             = "backend"
+def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
 
 // aws-autoscaling-group
-def ASG_A_NAME      = "demo-apne2-dev-api-a-asg"
-def ASG_B_NAME      = "demo-apne2-dev-api-b-asg"
-def ASG_ACTIVE_NAME   = "${ASG_A_NAME}"
-def ASG_DEACTIVE_NAME = "${ASG_B_NAME}"
-def ASG_CAPACITY    = 1
-def ASG_MIN         = 1
+def ASG_A_NAME          = "demo-apne2-dev-api-a-asg"
+def ASG_B_NAME          = "demo-apne2-dev-api-b-asg"
+def CURR_ASG_NAME       = ""
+def NEXT_ASG_NAME       = ""
+def ASG_DESIERD         = 1
+def ASG_MIN             = 1
+def CURR_TARGET_GROUP   = ""
+def NEXT_TARGET_GROUP   = ""
 
 // aws-codedeploy
-def CD_APP_NAME     = "demo-apne2-dev-api-cd"
-def CD_DG_NAME      = "group-b"
-def S3_BUCKET_NAME  = "opsflex-cicd-mgmt"
-def S3_PATH         = "backend"
+def CD_APP_NAME         = "demo-apne2-dev-api-cd"
+def CD_DG_NAME          = ""
+def DEPLOYMENT_ID       = ""
+
+@NonCPS
+def toJson(String text) {
+    def jsonSlurper = new JsonSlurper()
+    def json = jsonSlurper.parseText (text)
+    return json
+}
+
+def initVariables(String tgVal) {
+  if("demo-apne2-dev-api-a-tg8080" == tgVal) {
+    CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+    NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+    NEXT_TARGET_GROUP = "demo-apne2-dev-api-b-tg8080"
+    CD_DG_NAME        = "group-b"
+  }
+  else {
+    CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+    NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+    NEXT_TARGET_GROUP = "demo-apne2-dev-api-a-tg8080"
+    CD_DG_NAME        = "group-a"
+  }
+}
+
+
+def showVariables() {
+  echo "CURR_ASG_NAME: ${CURR_ASG_NAME}"
+  echo "NEXT_ASG_NAME: ${NEXT_ASG_NAME}"
+  echo "NEXT_TARGET_GROUP: ${NEXT_TARGET_GROUP}"
+  echo "CD_DG_NAME: ${CD_DG_NAME}"
+}
 
 pipeline {
   agent any
-  
+
   stages {
 
     stage('Pre-Process') {
 
       steps {
-        echo '* Backend-demo pipeline start.'
-        echo "BUILD_NUMBER: ${BUILD_NUMBER}"
-        echo "BUNDLE_NAME: ${BUNDLE_NAME}"
-        echo "S3_PATH: ${S3_PATH}"
-        echo "VERSION: ${VERSION}"        
+         echo "Preparing ..."
+         script {
+            showVariables()
+            echo "Discovery Active Target-Group ---------------------"
+            sh """
+              aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
+                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
+                --region ap-northeast-2 --output json > TARGET_GROUP_NAME.json
+               """
+            def textValue = readFile("TARGET_GROUP_NAME.json")
+            def jsonTG =toJson(textValue)
+            def tgVal = "${jsonTG[0][0]}"
+            echo "Initialize & Display variables --------------------"
+            initVariables(tgVal)
+            showVariables()
+         }
       }
 
     }
+
 
     stage('Build') {
+
       steps {
-        echo 'Build backend-demo'
-        sh 'mvn clean package -Dmaven.test.skip=true'
+        echo "Build backend-demo"
+        sh "mvn clean package -Dmaven.test.skip=true"
+
+        script {
+          echo "Display variables --------------------"
+          showVariables()
+        }
       }
+
     }
+
 
     stage('Inspection') {
       parallel {
+
         stage('Inspection') {
           steps {
             echo 'Execute Code-Inspection like sonarqube'
-            script {
-              VERSION = "1.0.0-snapshot"
-            }
           }
         }
 
         stage('Coverage') {
           steps {
             echo 'Unit test like JUnit'
-            echo "VERSION: ${VERSION}"
           }
         }
 
       }
     }
 
+
     stage('Upload-Bundle') {
       steps {
-        echo "build codedeploy bundle: ${BUILD_NUMBER}"
+        echo "Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}'"
         sh """
 rm -rf ./deploy-bundle
 mkdir -p deploy-bundle/scripts
@@ -83,34 +131,26 @@ zip -r ${BUNDLE_NAME} ./
       }
     }
 
-    stage('Discovery-ActiveTarget') {
-      steps {
-        echo "descovery active target-group for blue/green"
-        
-        sh"""
-          aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
-              --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP}`)==`true`].[TargetGroupName]' \
-              --region ap-northeast-2 --output json  > TARGET_GROUP_NAME.json
-        """
-        script {
-          def resultTgName = readFile("TARGET_GROUP_NAME.json")
 
-          echo "${resultTgName}"
-        }
+    stage('Preparing Auto-Scale Stage') {
+
+      steps {
+
+         sh"""
+         aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${NEXT_ASG_NAME} \
+             --desired-capacity ${ASG_CAPACITY} \
+             --min-size ${ASG_MIN} \
+             --region ap-northeast-2
+         """
+
+         echo "Waiting boot-up ec2 instances: 1 mins."
+         sh "sleep 60"
       }
     }
 
+
     stage('Deploy') {
       steps {
-        
-        sh"""
-        aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${ASG_ACTIVE_NAME}  \
-            --desired-capacity ${ASG_CAPACITY} \
-            --min-size ${ASG_MIN} \
-            --region ap-northeast-2
-        
-        sleep 10
-        """
         
         echo "Triggering codeDeploy: "
         sh"""
@@ -120,11 +160,9 @@ zip -r ${BUNDLE_NAME} ./
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
           """
         script {
-            // def DEPLOYMENT_ID = readJSON file: './DEPLOYMENT_ID.json'
-            // echo "DEPLOYMENT_ID: ${DEPLOYMENT_ID.deploymentId}"
-          
-          def aaa = script {sh "cat DEPLOYMENT_ID.json"}
-          echo "${aaa}"
+          def textValue = readFile("DEPLOYMENT_ID.json")
+          def jsonDI =toJson(textValue)
+          DEPLOYMENT_ID = "${jsonDI.deploymentId}"
         }
       }
     }
@@ -132,8 +170,13 @@ zip -r ${BUNDLE_NAME} ./
     stage('Health-Check') {
       steps {
         echo 'health check target-group'
-        echo 'waiting codedeploy processing...'
-        // awaitDeploymentCompletion 'deploymentid-xxxx'
+        script {
+          echo 'Waiting codedeploy processing...'
+          sh """
+          awaitDeploymentCompletion "${DEPLOYMENT_ID}"
+          """
+        }
+
       }
     }
 
@@ -146,13 +189,13 @@ zip -r ${BUNDLE_NAME} ./
     stage('Stopping Blue instances') {
       steps {
         echo 'stop blue target-group instances.'
-       script{
-         """
-        aws autoscaling update-auto-scaling-group --auto-scaling-group-name "${ASG_DEACTIVE_NAME}"  \
-            --desired-capacity 0 --min-size 0 --default-cooldown 90 \
-            --region ap-northeast-2 
-         """
-       }
+        script{
+           """
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name "${CURR_ASG_NAME}"  \
+              --desired-capacity 0 --min-size 0 --default-cooldown 120 \
+              --region ap-northeast-2
+           """
+        }
       }
     }
 
