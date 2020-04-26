@@ -1,55 +1,69 @@
 import groovy.json.JsonSlurper
 
-def ALB_ARN             = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:loadbalancer/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c"
+def APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
 def TARGET_GROUP_PRIFIX = "demo-apne2-dev-api"
-
+def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/1b22b561377e078e"
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "backend"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
+def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
 
+def DEPLOY_GROUP_NAME   = ""
+def DEPLOYMENT_ID       = ""
+def ASG_DESIRED         = 1
+def ASG_MIN             = 1
 def CURR_ASG_NAME       = ""
 def NEXT_ASG_NAME       = ""
-def ASG_DESIERD         = 1
-def ASG_MIN             = 1
-def CURR_TARGET_GROUP   = ""
-def NEXT_TARGET_GROUP   = ""
-
-// aws-codedeploy
-def CD_APP_NAME         = "demo-apne2-dev-api-cd"
-def CD_DG_NAME          = ""
-def DEPLOYMENT_ID       = ""
+def NEXT_TG_ARN         = ""
+def ALB_ARN             = ""
+def TG_RULE_ARN         = ""
 
 @NonCPS
 def toJson(String text) {
-    def jsonSlurper = new JsonSlurper()
-    def json = jsonSlurper.parseText (text)
+    def parser = new JsonSlurper()
+    def json = parser.parseText (text)
     return json
 }
 
-def initVariables(String tgVal) {
-  if("demo-apne2-dev-api-a-tg8080" == tgVal) {
-    env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-    env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-    env.NEXT_TARGET_GROUP = "demo-apne2-dev-api-b-tg8080"
-    env.CD_DG_NAME        = "group-b"
-  }
-  else {
-    env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-    env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-    env.NEXT_TARGET_GROUP = "demo-apne2-dev-api-a-tg8080"
-    env.CD_DG_NAME        = "group-a"
+def initVariables(def tgList) {
+  tgList.each { tg ->
+      String lbARN  = tg.LoadBalancerArns[0]
+      String tgName = tg.TargetGroupName
+      String tgARN  = tg.TargetGroupArn
+
+      if( lbARN != null && lbARN.startsWith("arn:aws")) {
+        env.ALB_ARN = lbARN
+        if(tgName.startsWith("demo-apne2-dev-api-a")) {
+          env.DEPLOY_GROUP_NAME = "group-b"
+          env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+          env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+        }
+        else {
+            env.DEPLOY_GROUP_NAME = "group-a"
+            env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+            env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+        }
+      }
+      else {
+        env.NEXT_TG_ARN       = tgARN
+        env.NEXT_TARGET_GROUP = tgName
+      }
   }
 }
 
-
-def showVariables() {   
+def showVariables() {
   echo """
-CURR_ASG_NAME:     ${env.CURR_ASG_NAME}
-NEXT_ASG_NAME:     ${env.NEXT_ASG_NAME}
-NEXT_TARGET_GROUP: ${env.NEXT_TARGET_GROUP}
-CD_DG_NAME:        ${env.CD_DG_NAME}"""
-
+>   CURR_ASG_NAME:     ${env.CURR_ASG_NAME}
+    NEXT_ASG_NAME:     ${env.NEXT_ASG_NAME}
+    CODE_DEPLOY_NAME:  ${CODE_DEPLOY_NAME}
+    DEPLOY_GROUP_NAME: ${env.DEPLOY_GROUP_NAME}
+    BUNDLE_NAME:       ${BUNDLE_NAME}
+    ALB_ARN:           ${env.ALB_ARN}
+    NEXT_TG_ARN:       ${env.NEXT_TG_ARN}
+    NEXT_TARGET_GROUP: ${env.NEXT_TARGET_GROUP}
+    """
 }
+
 
 pipeline {
   agent any
@@ -64,16 +78,13 @@ pipeline {
             showVariables()
             echo "Discovery Active Target-Group ---------------------"
             sh """
-              aws elbv2 describe-target-groups --load-balancer-arn "${ALB_ARN}" \
-                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`].[TargetGroupName]' \
-                --region ap-northeast-2 --output json > TARGET_GROUP_NAME.json
+              aws elbv2 describe-target-groups \
+                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`]' \
+                --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
                """
-            def textValue = readFile("TARGET_GROUP_NAME.json")
-            def jsonTG =toJson(textValue)
-            def tgVal = "${jsonTG[0][0]}"
-            echo "Initialize & Display variables --------------------"
-            initVariables(tgVal)
-            showVariables()
+            def textValue = readFile("TARGET_GROUP_LIST.json")
+            def tgList = toJson(textValue)
+            echo "Initialize Variables --------------------"
          }
       }
 
@@ -83,13 +94,12 @@ pipeline {
     stage('Build') {
 
       steps {
-        echo "Build backend-demo"
-        sh "mvn clean package -Dmaven.test.skip=true"
-
         script {
           echo "Display variables --------------------"
           showVariables()
         }
+        echo "Build backend-demo"
+        sh "mvn clean package -Dmaven.test.skip=true"
       }
 
     }
@@ -134,10 +144,11 @@ zip -r ${BUNDLE_NAME} ./
     stage('Preparing Auto-Scale Stage') {
 
       steps {
+        echo "Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME}"
 
          sh"""
          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-             --desired-capacity ${ASG_DESIERD} \
+             --desired-capacity ${ASG_DESIRED} \
              --min-size ${ASG_MIN} \
              --region ap-northeast-2
          """
@@ -150,13 +161,14 @@ zip -r ${BUNDLE_NAME} ./
 
     stage('Deploy') {
       steps {
-        showVariables()
-        echo "Triggering codeDeploy "
+        echo "Triggering CodeDeploy "
         sh"""
           aws deploy create-deployment \
               --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
-              --application-name "${CD_APP_NAME}" --deployment-group-name "${env.CD_DG_NAME}" \
+              --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+
+          sleep 1
           """
           
         script {
@@ -171,6 +183,7 @@ zip -r ${BUNDLE_NAME} ./
       steps {
         echo 'health check target-group'
         echo "DEPLOYMENT_ID ${env.DEPLOYMENT_ID}"
+        sh"sleep 60"
         script {
           echo 'Waiting codedeploy processing...'
           // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
@@ -179,15 +192,28 @@ zip -r ${BUNDLE_NAME} ./
       }
     }
 
-    stage('Change Routing') {
+    stage('Change LB-Routing') {
+
       steps {
-        echo 'change blue-green load-balancer routing path'
+        echo "Change load-balancer routing path"
+        script {
+          sh"""
+          aws elbv2 modify-rule --rule-arn ${TARGET_RULE_ARN} \
+              --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
+              --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
+              --region ap-northeast-2 --output json > CHANGED_LB_TARGET_GROUP.json
+
+          cat ./CHANGED_LB_TARGET_GROUP.json
+          """
+        }
       }
+
     }
 
-    stage('Stopping Blue instances') {
+    stage('Stopping Blue Stage') {
       steps {
-        echo "stop blue target-group instances. ${env.CURR_ASG_NAME}"
+        echo "Stopping Blue Stage. Auto-Acaling-Group: ${env.CURR_ASG_NAME}"
+        sh"sleep 30"
         script{
           sh"""
           aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
