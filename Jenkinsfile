@@ -137,7 +137,7 @@ zip -r ${BUNDLE_NAME} ./
 
          sh"""
          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-             --desired-capacity ${ASG_CAPACITY} \
+             --desired-capacity ${ASG_DESIERD} \
              --min-size ${ASG_MIN} \
              --region ap-northeast-2
          """
