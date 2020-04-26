@@ -171,9 +171,7 @@ zip -r ${BUNDLE_NAME} ./
         echo 'health check target-group'
         script {
           echo 'Waiting codedeploy processing...'
-          sh """
-          awaitDeploymentCompletion "${env.DEPLOYMENT_ID}"
-          """
+          // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
         }
 
       }
