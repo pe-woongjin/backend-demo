@@ -31,6 +31,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @GetMapping(value = "/greeting")
+    public ResponseEntity greeting() {
+        return ResponseEntity.ok("Hello MingMing! nice morning...");
+    }
+
     @PostMapping(value = "/api/v1/products")
     public ResponseEntity<?> add(@RequestBody Product product) throws Exception {
         product.setId(UUID.randomUUID().toString());
