@@ -177,7 +177,6 @@ pipeline {
                 timeout(time: 3, unit: 'MINUTES'){                                         
                   awaitDeploymentCompletion("${env.DEPLOYMENT_ID}")
                 }
-                sh"sleep 30"
             }
         }
 
@@ -201,7 +200,7 @@ pipeline {
             steps {
                 script{
                     echo "----- [Stopping Blue] Stopping Blue Stage. Auto-Acaling-Group: ${env.CURR_ASG_NAME} -----"
-                    sh"sleep 10"
+                    sh"sleep 30"
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
                     --desired-capacity 0 --min-size 0 \
