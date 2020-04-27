@@ -161,8 +161,6 @@ pipeline {
                     --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
                     --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
                     --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
-
-                    sleep 5
                     """
 
                     def textValue = readFile("DEPLOYMENT_ID.json")
@@ -176,7 +174,10 @@ pipeline {
             steps {
                 echo "----- [Health-Check] DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
                 echo "----- [Health-Check] Waiting codedeploy processing -----"
-                sh"sleep 120"
+                timeout(time: 3, unit: 'MINUTES'){                                         
+                  awaitDeploymentCompletion("${env.DEPLOYMENT_ID}")
+                }
+                sh"sleep 30"
             }
         }
 
@@ -200,7 +201,7 @@ pipeline {
             steps {
                 script{
                     echo "----- [Stopping Blue] Stopping Blue Stage. Auto-Acaling-Group: ${env.CURR_ASG_NAME} -----"
-                    sh"sleep 30"
+                    sh"sleep 10"
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
                     --desired-capacity 0 --min-size 0 \
