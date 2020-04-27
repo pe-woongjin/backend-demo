@@ -148,7 +148,8 @@ zip -r ${BUNDLE_NAME} ./
           
          sh"""
          aws autoscaling suspend-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-         --scaling-processes HealthCheck Terminate > AWS_LOG_ASG
+         --scaling-processes HealthCheck Terminate 
+         --region ap-northeast-2 --output json > AWS_LOG_ASG
          """
 
          sh"""
@@ -196,7 +197,8 @@ zip -r ${BUNDLE_NAME} ./
           
         sh"""
         aws autoscaling resume-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-        --scaling-processes HealthCheck Terminate > AWS_ASG_LOG
+        --scaling-processes HealthCheck Terminate 
+        --region ap-northeast-2 --output json > AWS_ASG_LOG
         """
 
       }
