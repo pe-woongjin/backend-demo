@@ -25,29 +25,27 @@ def toJson(String text) {
 }
 
 def initVariables(def tgList) {
-  tgList.each { tg ->
-      String lbARN  = tg.LoadBalancerArns[0]
-      String tgName = tg.TargetGroupName
-      String tgARN  = tg.TargetGroupArn
+    tgList.each { tg ->
+        String lbARN  = tg.LoadBalancerArns[0]
+        String tgName = tg.TargetGroupName
+        String tgARN  = tg.TargetGroupArn
 
-      if( lbARN != null && lbARN.startsWith("arn:aws")) {
-        env.ALB_ARN = lbARN
-        if(tgName.startsWith("demo-apne2-dev-api-a")) {
-          env.DEPLOY_GROUP_NAME = "group-b"
-          env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-          env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+        if(lbARN != null && lbARN.startsWith("arn:aws")) {
+            env.ALB_ARN = lbARN
+            if(tgName.startsWith("demo-apne2-dev-api-a")) {
+                env.DEPLOY_GROUP_NAME = "group-b"
+                env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+            } else {
+                env.DEPLOY_GROUP_NAME = "group-a"
+                env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+            }
+        } else {
+            env.NEXT_TG_ARN       = tgARN
+            env.NEXT_TARGET_GROUP = tgName
         }
-        else {
-            env.DEPLOY_GROUP_NAME = "group-a"
-            env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-            env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-        }
-      }
-      else {
-        env.NEXT_TG_ARN       = tgARN
-        env.NEXT_TARGET_GROUP = tgName
-      }
-  }
+    }
 }
 
 def showVariables() {
@@ -61,188 +59,161 @@ def showVariables() {
     """
 }
 
-
 pipeline {
-  agent any
+    agent any
+    stages {
+        stage('Pre-Process') {
+            steps {
+                script {
+                    echo "----- [Pre-Process] showVariables -----"
+                    showVariables()
 
-  stages {
+                    echo "----- [Pre-Process] Discovery Active Target Group -----"
+                    sh"""
+                    aws elbv2 describe-target-groups \
+                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`]' \
+                    --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
 
-    stage('Pre-Process') {
+                    cat ./TARGET_GROUP_LIST.json
+                    """
 
-      steps {
-         echo "Preparing ..."
-         script {
-            showVariables()
-            echo "Discovery Active Target-Group ---------------------"
-            sh"""
-              aws elbv2 describe-target-groups \
-                --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`]' \
-                --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
-                
-              cat ./TARGET_GROUP_LIST.json
-            """
-            def textValue = readFile("TARGET_GROUP_LIST.json")
-            def tgList = toJson(textValue)
-            echo "Initialize Variables --------------------"
-            initVariables(tgList)
-         }
-      }
+                    def textValue = readFile("TARGET_GROUP_LIST.json")
+                    def tgList = toJson(textValue)
+                    echo "----- [Pre-Process] Initialize Variables -----"
+                    initVariables(tgList)
 
-    }
-
-
-    stage('Build') {
-
-      steps {
-        script {
-          echo "Display variables --------------------"
-          showVariables()
+                    echo "----- [Pre-Process] showVariables -----"
+                    showVariables()
+                }
+            }
         }
-        echo "Build backend-demo"
-        sh "mvn clean package -Dmaven.test.skip=true"
-      }
 
-    }
+        stage('Build') {
+            steps {
+                script {
+                    echo "----- [Build] showVariables -----"
+                    showVariables()
 
-
-    stage('Inspection') {
-      parallel {
+                    echo "----- [Build] Build backend-demo -----"
+                    sh "mvn clean package -Dmaven.test.skip=true"
+                }
+            }
+        }
 
         stage('Inspection') {
-          steps {
-            echo 'Execute Code-Inspection like sonarqube'
-          }
+            parallel {
+                stage('Inspection') {
+                    steps {
+                        echo "----- [Inspection] Execute Code-Inspection like sonarqube -----"
+                    }
+                }
+
+                stage('Coverage') {
+                    steps {
+                        echo "----- [Coverage] Unit test like JUnit -----"
+                    }
+                }
+            }
         }
 
-        stage('Coverage') {
-          steps {
-            echo 'Unit test like JUnit'
-          }
+        stage('Upload-Bundle') {
+            steps {
+                script {
+                    echo "----- [Upload] Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}' -----"
+                    sh """
+                    rm -rf ./deploy-bundle
+                    mkdir -p deploy-bundle/scripts
+                    cp ./appspec.yml ./deploy-bundle
+                    cp ./target/backend-demo.jar ./deploy-bundle/
+                    cp -rf ./scripts ./deploy-bundle
+                    cd ./deploy-bundle
+                    zip -r ${BUNDLE_NAME} ./
+                    """
+                }
+                s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
+            }
         }
 
-      }
-    }
+        stage('Preparing Auto-Scale Stage') {
+            steps {
+                script {
+                    echo "----- [Auto-Scale] Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
 
+                    sh"""
+                    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
+                    --desired-capacity ${ASG_DESIRED} \
+                    --min-size ${ASG_MIN} \
+                    --region ap-northeast-2
+                    """
 
-    stage('Upload-Bundle') {
-      steps {
-        echo "Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}'"
-        sh """
-rm -rf ./deploy-bundle
-mkdir -p deploy-bundle/scripts
-cp ./appspec.yml ./deploy-bundle
-cp ./target/backend-demo.jar ./deploy-bundle/
-cp -rf ./scripts ./deploy-bundle
-cd ./deploy-bundle
-zip -r ${BUNDLE_NAME} ./
-"""
-        s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
-      }
-    }
-
-
-    stage('Preparing Auto-Scale Stage') {
-
-      steps {
-        echo "Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME}"
-          
-         sh"""
-         aws autoscaling suspend-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-         --scaling-processes HealthCheck Terminate \
-         --region ap-northeast-2 --output json > AWS_LOG_ASG
-         """
-
-         sh"""
-         aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-             --desired-capacity ${ASG_DESIRED} \
-             --min-size ${ASG_MIN} \
-             --region ap-northeast-2
-         """
-
-         echo "Waiting boot-up ec2 instances: 2 mins. // TODO "
-         sh "sleep 120"
-      }
-    }
-
-
-    stage('Deploy') {
-      steps {
-        echo "Triggering CodeDeploy "
-        sh"""
-          aws deploy create-deployment \
-              --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
-              --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
-              --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
-
-          sleep 5
-          """
-          
-        script {
-          def textValue = readFile("DEPLOYMENT_ID.json")
-          def jsonDI =toJson(textValue)
-          env.DEPLOYMENT_ID = "${jsonDI.deploymentId}"
+                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 2 mins. -----"
+                    sh "sleep 180"
+                }
+            }
         }
-      }
-    }
 
-    stage('Health-Check') {
-      steps {
-        echo "health check target-group"
-        echo "DEPLOYMENT_ID ${env.DEPLOYMENT_ID}"
-        script {
-          echo "Waiting codedeploy processing... TODO "
-          // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "----- [Deploy] Triggering CodeDeploy -----"
+                    sh"""
+                    aws deploy create-deployment \
+                    --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
+                    --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
+                    --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+
+                    sleep 1
+                    """
+
+                    def textValue = readFile("DEPLOYMENT_ID.json")
+                    def jsonDI =toJson(textValue)
+                    env.DEPLOYMENT_ID = "${jsonDI.deploymentId}"
+                }
+            }
         }
-          
-        sh"""
-        aws autoscaling resume-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-        --scaling-processes HealthCheck Terminate \
-        --region ap-northeast-2 --output json > AWS_ASG_LOG
-        """
 
-        // TODO 
-        sh"sleep 60"
-          
-      }
-    }
-
-    stage('Change LB-Routing') {
-
-      steps {
-        echo "Change load-balancer routing path"
-        script {
-          sh"""
-          aws elbv2 modify-rule --rule-arn ${TARGET_RULE_ARN} \
-              --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
-              --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
-              --region ap-northeast-2 --output json > CHANGED_LB_TARGET_GROUP.json
-
-          cat ./CHANGED_LB_TARGET_GROUP.json
-          """
+        stage('Health-Check') {
+            steps {
+                echo "----- [Health-Check] DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
+                sh"sleep 60"
+                echo "----- [Health-Check] Waiting codedeploy processing -----"
+            }
         }
-      }
 
-    }
+        stage('Change LB-Routing') {
+            steps {
+                script {
+                    echo "----- [LB] Change load-balancer routing path -----"
+                    sh"""
+                    aws elbv2 modify-rule --rule-arn ${TARGET_RULE_ARN} \
+                    --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
+                    --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
+                    --region ap-northeast-2 --output json > CHANGED_LB_TARGET_GROUP.json
 
-    stage('Stopping Blue Stage') {
-      steps {
-        echo "Stopping Blue Stage. Auto-Acaling-Group: ${env.CURR_ASG_NAME}"
-        sh"sleep 30"
-        script{
-          sh"""
-          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
-              --desired-capacity 0 --min-size 0 \
-              --region ap-northeast-2
-           """
+                    cat ./CHANGED_LB_TARGET_GROUP.json
+                    """
+                }
+            }
         }
-      }
-    }
 
-    stage('Post-Process') {
-      steps {
-        echo 'post-process'
-      }
-    }
+        stage('Stopping Blue Stage') {
+            steps {
+                script{
+                    echo "----- [Stopping Blue] Stopping Blue Stage. Auto-Acaling-Group: ${env.CURR_ASG_NAME} -----"
+                    sh"sleep 30"
+                    sh"""
+                    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
+                    --desired-capacity 0 --min-size 0 \
+                    --region ap-northeast-2
+                    """
+                }
+            }
+        }
 
-  }
+        stage('Post-Process') {
+            steps {
+                echo "----- [Post-Process] post-process -----"
+            }
+        }
+    }
 }
