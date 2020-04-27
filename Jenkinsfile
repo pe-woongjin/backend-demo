@@ -147,7 +147,7 @@ pipeline {
                     """
 
                     echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 2 mins. -----"
-                    sh "sleep 180"
+                    sh "sleep 120"
                 }
             }
         }
@@ -162,7 +162,7 @@ pipeline {
                     --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
                     --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
 
-                    sleep 1
+                    sleep 5
                     """
 
                     def textValue = readFile("DEPLOYMENT_ID.json")
@@ -175,8 +175,8 @@ pipeline {
         stage('Health-Check') {
             steps {
                 echo "----- [Health-Check] DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
-                sh"sleep 60"
                 echo "----- [Health-Check] Waiting codedeploy processing -----"
+                sh"sleep 120"
             }
         }
 
