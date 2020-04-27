@@ -159,8 +159,8 @@ zip -r ${BUNDLE_NAME} ./
              --region ap-northeast-2
          """
 
-         echo "Waiting boot-up ec2 instances: 1 mins."
-         sh "sleep 60"
+         echo "Waiting boot-up ec2 instances: 2 mins. // TODO "
+         sh "sleep 120"
       }
     }
 
@@ -187,11 +187,10 @@ zip -r ${BUNDLE_NAME} ./
 
     stage('Health-Check') {
       steps {
-        echo 'health check target-group'
+        echo "health check target-group"
         echo "DEPLOYMENT_ID ${env.DEPLOYMENT_ID}"
-        sh"sleep 60"
         script {
-          echo 'Waiting codedeploy processing...'
+          echo "Waiting codedeploy processing... TODO "
           // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
         }
           
@@ -201,6 +200,9 @@ zip -r ${BUNDLE_NAME} ./
         --region ap-northeast-2 --output json > AWS_ASG_LOG
         """
 
+        // TODO 
+        sh"sleep 60"
+          
       }
     }
 
