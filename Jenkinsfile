@@ -146,8 +146,8 @@ pipeline {
                     --region ap-northeast-2
                     """
 
-                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 2 mins. -----"
-                    sh "sleep 120"
+                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 90 secs. -----"
+                    sh "sleep 90"
                 }
             }
         }
