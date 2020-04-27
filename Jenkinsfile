@@ -145,6 +145,11 @@ zip -r ${BUNDLE_NAME} ./
 
       steps {
         echo "Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME}"
+          
+         sh"""
+         aws autoscaling suspend-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
+         --scaling-processes HealthCheck Terminate > AWS_LOG_ASG
+         """
 
          sh"""
          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
@@ -153,8 +158,8 @@ zip -r ${BUNDLE_NAME} ./
              --region ap-northeast-2
          """
 
-         echo "Waiting boot-up ec2 instances: 2 mins."
-         sh "sleep 180"
+         echo "Waiting boot-up ec2 instances: 1 mins."
+         sh "sleep 60"
       }
     }
 
@@ -168,7 +173,7 @@ zip -r ${BUNDLE_NAME} ./
               --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
               --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
 
-          sleep 1
+          sleep 5
           """
           
         script {
@@ -188,6 +193,11 @@ zip -r ${BUNDLE_NAME} ./
           echo 'Waiting codedeploy processing...'
           // sh """awaitDeploymentCompletion '${env.DEPLOYMENT_ID}'"""
         }
+          
+        sh"""
+        aws autoscaling resume-processes --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
+        --scaling-processes HealthCheck Terminate > AWS_ASG_LOG
+        """
 
       }
     }
