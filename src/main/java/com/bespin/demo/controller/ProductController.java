@@ -33,7 +33,7 @@ public class ProductController {
 
     @GetMapping(value = "/greeting")
     public ResponseEntity greeting() {
-        return ResponseEntity.ok("Hello MingMing! nice morning...");
+        return ResponseEntity.ok("Hello Junho! Nice morning...");
     }
 
     @PostMapping(value = "/api/v1/products")
