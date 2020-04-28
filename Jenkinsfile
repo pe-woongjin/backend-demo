@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 def APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
-def TARGET_GROUP_PRIFIX = "demo-apne2-dev-api"
+def TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
 def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/1b22b561377e078e"
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "backend"
@@ -71,7 +71,7 @@ pipeline {
                     echo "----- [Pre-Process] Discovery Active Target Group -----"
                     sh"""
                     aws elbv2 describe-target-groups \
-                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PRIFIX}`)==`true`]' \
+                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
                     --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
 
                     cat ./TARGET_GROUP_LIST.json
