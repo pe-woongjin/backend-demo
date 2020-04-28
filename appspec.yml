@@ -1,0 +1,16 @@
+version: 0.0
+os: linux
+files:
+  - source: /backend-demo.jar
+    destination: /home/ec2-user/app/
+    overwrite: true
+
+hooks:
+  BeforeInstall:
+    - location: scripts/beforeInstall.sh
+      timeout: 60
+      runas: root
+  ApplicationStart:
+    - location: scripts/applicationStart.sh
+      timeout: 60
+      runas: root
