@@ -62,10 +62,10 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
-def desiredAsgCount(def currentAsgName) {
+def desiredAsgCount() {
   script {
     return sh(
-      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currentAsgName}`)==`true`]' \
+      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}'   """, 
@@ -107,15 +107,13 @@ pipeline {
                     """
 
                     def textValue = readFile("TARGET_GROUP_LIST.json")
-                    def tgList = toJson(textValue)
+                    def tgList = toJson( textValue )
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
-                    
-                    echo "env.CURR_ASG_NAME ----- ${env.CURR_ASG_NAME}"
                     env.ASG_DESIRED = 0
                     
-                    def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
+                    def desiredCnt = desiredAsgCount() 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables ----- desiredCnt: ${desiredCnt}"
