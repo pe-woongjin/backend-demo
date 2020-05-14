@@ -65,7 +65,10 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
 def desiredAsgCount(def currAsgName) {
   script {
     
+    
       echo "currAsgName---------: ${currAsgName}"
+      
+      
     /*  
     return sh(
       script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
@@ -76,6 +79,7 @@ def desiredAsgCount(def currAsgName) {
     }
     */
     return 0
+  }
 }
 
 def showVariables() {
