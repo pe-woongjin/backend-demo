@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: /backend-demo.jar
+  - source: /demo-api.jar
     destination: /home/ec2-user/app/
     overwrite: true
 
