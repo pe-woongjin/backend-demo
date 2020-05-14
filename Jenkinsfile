@@ -78,8 +78,7 @@ def desiredAsgCount(def currAsgName) {
       script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
-                     --output text | awk -F' ' '{print NF; exit}'
-                     """, 
+                     --output json | wc -l  """, 
       returnStdout: true)
     } */
       
@@ -133,7 +132,7 @@ pipeline {
                     def desiredCnt = sh(script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
-                     --output text | awk -F' ' '{print NF; exit}' """,  returnStdout: true)
+                     --output json | wc -l   """,  returnStdout: true)
                     
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
