@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>VPC 리소스 구성 - Demo API Service Application</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "VPC \ub9ac\uc18c\uc2a4 \uad6c\uc131";
+    var mkdocs_page_input_path = "iac/infra-02.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Demo API Service Application</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">demo-api</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">아키텍처</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-01/">인프라 아키텍처</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-02/">CICD 아키텍처</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">인프라 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../infra-01/">IAM 구성</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">VPC 리소스 구성</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#vpc">VPC 리소스 구성</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#vpc_1">VPC 주요 리소스</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../infra-03/">CodeDeploy 구성</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../baseimage-01.md">베이스 이미지 구성</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../app/app-01/">Application 프로젝트 템플릿</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">CICD 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../cicd/cicd-01/">GitLab webhook 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../cicd/cicd-02/">Jenkins 파이프라인 구성</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../appendix/">기타</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Demo API Service Application</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>인프라 구성 &raquo;</li>
+        
+      
+    
+    <li>VPC 리소스 구성</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="vpc">VPC 리소스 구성</h2>
+<p>Demo API 어플리케이션의 Blue/Green 배포를 위한 VPC의 주요 리소스를 구성 합니다.</p>
+<p><img alt="demo-api infrastructure" src="../../img/vpc-resources-for-codedeploy.png" /></p>
+<hr />
+<h3 id="vpc_1">VPC 주요 리소스</h3>
+<table>
+<thead>
+<tr>
+<th align="center">리소스 타입</th>
+<th align="center">리소스 이름</th>
+<th align="left">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">서브 네트워크</td>
+<td align="center">private-subnet-01</td>
+<td align="left">target group 01의 my-app을 배치를 위한 서브넷으로 HA를 위해 AZ(ap-northeast-1a) 에 구성</td>
+</tr>
+<tr>
+<td align="center">오토 스케일링 그룹</td>
+<td align="center">asg-group-a</td>
+<td align="left">CodeDeploy의 group-a 배포그룹 타겟인 auto-scaling-group “asg-group-a” (그린 영역)</td>
+</tr>
+<tr>
+<td align="center">타겟 그룹</td>
+<td align="center">my-app-tg-a</td>
+<td align="left">my-app-tg-a 타겟 그룹은 ALB 의 라우팅 경로로 연결된 On-Servcie 중인 서비스 그룹 (그린 영역)</td>
+</tr>
+<tr>
+<td align="center">서브 네트워크</td>
+<td align="center">private-subnet-02</td>
+<td align="left">target group 02의 my-app을 배치를 위한 서브넷으로 HA를 위해 AZ(ap-northeast-1c) 에 구성</td>
+</tr>
+<tr>
+<td align="center">오토 스케일링 그룹</td>
+<td align="center">asg-group-b</td>
+<td align="left">CodeDeploy의 group-b 배포그룹 타겟인 auto-scaling-group “asg-group-b” (블루 영역)</td>
+</tr>
+<tr>
+<td align="center">타겟 그룹</td>
+<td align="center">my-app-tg-b</td>
+<td align="left">CodeDeploy의 group-b 배포그룹 타겟인 auto-scaling-group “asg-group-b” (블루 영역)</td>
+</tr>
+<tr>
+<td align="center">시작 템플릿</td>
+<td align="center">my-app-asg-lt</td>
+<td align="left">asg-group-a, asg-group-b 오토 스케일링 그룹에서 사용 하는 ec2인스턴스 생성 및 health-api 를 위한 시작 템플릿 구성</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="_1">오토 스케일 그룹</h4>
+<p>EC2 인스턴스(컴퓨팅 파워)의 탄력적인 확장 기능을 가능하게 하는 AWS 의 서비스 </p>
+<table>
+<thead>
+<tr>
+<th align="center">주요 속성</th>
+<th align="left">설정 값 예시</th>
+<th align="left">기타</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">오토 스케일명</td>
+<td align="left">my-app-asg</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">시작 템플릿</td>
+<td align="left">my-app-asg-lt</td>
+<td align="left">새롭게 구동되는 my-app를 위한 ec2 인스턴스 생성시 참조 하는 시작 구성 템플릿</td>
+</tr>
+<tr>
+<td align="center">desired</td>
+<td align="left">1</td>
+<td align="left">최초 시작에 필요한 인스턴스 수</td>
+</tr>
+<tr>
+<td align="center">min</td>
+<td align="left">1</td>
+<td align="left">탄력적으로 축소 하는 경우 인스턴스의 최소 갯수</td>
+</tr>
+<tr>
+<td align="center">max</td>
+<td align="left">5</td>
+<td align="left">탄력적으로 확장 하는 경우 인스턴스의 최대 갯수</td>
+</tr>
+<tr>
+<td align="center">vpc-id</td>
+<td align="left">vpc10290124</td>
+<td align="left">ASG 가 구성된 VPC</td>
+</tr>
+<tr>
+<td align="center">AZ</td>
+<td align="left">ap-northeast-2a, ap-northeast-2c</td>
+<td align="left">HA 를 통한 가용 구성을 위해 물리적인 Data Center 설정</td>
+</tr>
+<tr>
+<td align="center">target group</td>
+<td align="left">my-app-tg-a</td>
+<td align="left">오토스케일의 탄력적인 확장에 의해 EC2 인스턴스가 생성 되어 서비스 되는 대상 그룹</td>
+</tr>
+<tr>
+<td align="center">상태검사 유휴기간</td>
+<td align="left">300</td>
+<td align="left">오토스케일 라이프사이클의 주요 이벤트에 대해 상태 점검이 필요한 기준 시간</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="_2">시작 템플릿</h4>
+<p>시작 템플릿은 EC2 인스턴스를 새롭게 구동할 때 참조 하는 OS 타입, EC2 타입, EBS Volume, 보안 그룹 등을 정의 합니다.</p>
+<table>
+<thead>
+<tr>
+<th align="center">주요 속성</th>
+<th align="left">설정 값 예시</th>
+<th align="left">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">name</td>
+<td align="left">my-app-asg-lt</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">ec2-type</td>
+<td align="left">m5.large</td>
+<td align="left">새롭게 구동되는 my-app를 위한 ec2 인스턴스 생성시 참조 하는 시작 구성 템플릿</td>
+</tr>
+<tr>
+<td align="center">ami-id</td>
+<td align="left">ami-0c5a717974f63b04c</td>
+<td align="left">최초 시작에 필요한 인스턴스 수</td>
+</tr>
+<tr>
+<td align="center">Security Group</td>
+<td align="left">sg-0627eb058ca78b96c, ...</td>
+<td align="left">탄력적으로 축소 하는 경우 인스턴스의 최소 갯수</td>
+</tr>
+<tr>
+<td align="center">key-pair</td>
+<td align="left">prd-keypair</td>
+<td align="left">탄력적으로 확장 하는 경우 인스턴스의 최대 갯수</td>
+</tr>
+<tr>
+<td align="center">EBS-snapshot</td>
+<td align="left">snap-0cbb59dd32bab1541</td>
+<td align="left">OS 설치에 필요한 EBS 볼륨 스냅샷</td>
+</tr>
+<tr>
+<td align="center">EBS Size</td>
+<td align="left">12 GB</td>
+<td align="left">EBS 볼륨 크기</td>
+</tr>
+<tr>
+<td align="center">Volum Type</td>
+<td align="left">gp2</td>
+<td align="left">SSD, HDD 등의 디스크 액세스 타입</td>
+</tr>
+<tr>
+<td align="center">종료시 삭제</td>
+<td align="left">Yes</td>
+<td align="left">오토스케일의 경우 자동 축소된 인스턴스에 대해 종료 하는 정책이 기본 값</td>
+</tr>
+<tr>
+<td align="center">user-data</td>
+<td align="left">300</td>
+<td align="left">health check를 위한 api 구동 등 사용자 정의 쉘 스크립트 실행시 기입</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="code-deploy">Code-Deploy</h4>
+<p>AWS Code-Deploy를 통해 Blue/Green 배포를 구성 합니다.  </p>
+<table>
+<thead>
+<tr>
+<th align="center">주요 속성</th>
+<th align="left">설정 값 예시</th>
+<th align="left">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">애플리케이션</td>
+<td align="left">my-app-code-deploy</td>
+<td align="left">my-app 어플리케이션을 Blue/Green 배포를 합니다.</td>
+</tr>
+<tr>
+<td align="center">플랫폼</td>
+<td align="left">EC2/온프레미스</td>
+<td align="left">배포 대상이 EC2 인 경우</td>
+</tr>
+<tr>
+<td align="center">배포 유형</td>
+<td align="left">현재 위치</td>
+<td align="left">"현재 위치"와 "블루 그린" 배포 두가지 유형을 제공 하지만, "현재 위치" 유형을 커스텀 하여 "블루 그린" 배포를 구성 합니다.</td>
+</tr>
+<tr>
+<td align="center">배포 그룹</td>
+<td align="left">group-a, group-b</td>
+<td align="left">배포 그룹 하나는은 오토 스케일링 그룹을 지정할 수 있습니다. blue 와 green에 해당하는 2개의 배포 그룹이 필요 합니다.</td>
+</tr>
+<tr>
+<td align="center">오토 스케일 그룹</td>
+<td align="left">my-app-asg-a, my-app-asg-a</td>
+<td align="left">배포 그룹이 사용하는 오토 스케일 그룹으로 group-a 는 my-app-asg-a 으로, group-b 는 my-app-asg-a 을 사용 하는 예가 됩니다.</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../infra-03/" class="btn btn-neutral float-right" title="CodeDeploy 구성">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../infra-01/" class="btn btn-neutral" title="IAM 구성"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../infra-01/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../infra-03/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

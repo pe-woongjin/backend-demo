@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Application 프로젝트 템플릿 - Demo API Service Application</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Application \ud504\ub85c\uc81d\ud2b8 \ud15c\ud50c\ub9bf";
+    var mkdocs_page_input_path = "app/app-01.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Demo API Service Application</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">demo-api</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">아키텍처</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-01/">인프라 아키텍처</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-02/">CICD 아키텍처</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">인프라 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-01/">IAM 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-02/">VPC 리소스 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-03/">CodeDeploy 구성</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../iac/baseimage-01.md">베이스 이미지 구성</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Application 프로젝트 템플릿</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#spring-boot-application-flow-diagram">Spring-Boot Application Flow Diagram</a></li>
+    
+
+    <li class="toctree-l2"><a href="#demo-api-project-template-layout">Demo API Project Template Layout</a></li>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">CICD 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../cicd/cicd-01/">GitLab webhook 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../cicd/cicd-02/">Jenkins 파이프라인 구성</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../appendix/">기타</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Demo API Service Application</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Application 프로젝트 템플릿</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="spring-boot-application-flow-diagram">Spring-Boot Application Flow Diagram</h2>
+<p>Spring-Boot MVC 프레임 워크는 다른 많은 웹 MVC 프레임 워크와 마찬가지로 요청 중심이며 
+Dispatcher-Servlet을 중심으로 설계되어 요청을 컨트롤러에 위임하여 애플리케이션 개발을 용이하게 합니다.
+Spring의 DispatcherServlet 의 강력한 특징은 Spring IoC 컨테이너와 완전히 통합되어 Spring의 다른 컴포넌트를<br />
+필요하면 쉽게 사용할 수 있습니다.</p>
+<p><img alt="spring-business-process-flow-diagram" src="../../img/spring-business-process-flow-diagram.png" /></p>
+<h3>처리 흐름 개요</h3>
+
+<ul>
+<li>DispatcherServlet 이 요청을 수신합니다.</li>
+<li>DispatcherServlet 은 적절한 컨트롤러 를선택하는 작업을 HandlerMapping에 전달 합니다.
+ HandlerMapping 은 수신 요청 URL에 맵핑 된 컨트롤러를 선택하고 (선택된 핸들러) 및 컨트롤러 를 DispatcherServlet으로 리턴 합니다.</li>
+<li>DispatcherServlet 은 Controller 의 비즈니스 로직 실행 태스크를 HandlerAdapter로 디스패치 합니다.</li>
+<li>HandlerAdapter 는 Controller 의 비즈니스 로직 프로세스를 호출합니다.</li>
+<li>Controller 는 비즈니스 로직을 실행하고 처리 결과를 Model에 설정하고 논리적 뷰 이름을 HandlerAdapter에 리턴합니다.</li>
+<li>DispatcherServlet 은 View 이름에 해당하는 View 를 해결하는 작업을 ViewResolver로 전달 합니다. ViewResolver 는뷰 이름에 매핑된 뷰를 반환합니다.</li>
+<li>DispatcherServlet 은 렌더링 프로세스를 리턴 된 View로 전달합니다.</li>
+<li>뷰는 모델 데이터를렌더링하고 응답을 반환합니다.</li>
+</ul>
+<hr />
+<h2 id="demo-api-project-template-layout">Demo API Project Template Layout</h2>
+<p>어플리케이션 아키텍처는 CoC(Convention over Configuration)을 기반으로, 별도의 설명 없이도 프로젝트/패키지/리소스 구조와 Naming 룰을 살펴 보고, 개발자가 적절한 구현을 하도록 가이드 합니다.</p>
+<p><img alt="spring-boot-project-layout" src="../../img/spring-boot-project-layout.png" /></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../cicd/cicd-01/" class="btn btn-neutral float-right" title="GitLab webhook 구성">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../../iac/infra-03/" class="btn btn-neutral" title="CodeDeploy 구성"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../../iac/infra-03/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../../cicd/cicd-01/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

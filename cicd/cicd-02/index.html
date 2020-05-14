@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Jenkins 파이프라인 구성 - Demo API Service Application</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Jenkins \ud30c\uc774\ud504\ub77c\uc778 \uad6c\uc131";
+    var mkdocs_page_input_path = "cicd/cicd-02.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Demo API Service Application</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">demo-api</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">아키텍처</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-01/">인프라 아키텍처</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../arch/arch-02/">CICD 아키텍처</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">인프라 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-01/">IAM 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-02/">VPC 리소스 구성</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../iac/infra-03/">CodeDeploy 구성</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../iac/baseimage-01.md">베이스 이미지 구성</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../app/app-01/">Application 프로젝트 템플릿</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">CICD 구성</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../cicd-01/">GitLab webhook 구성</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Jenkins 파이프라인 구성</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#blue-green-jenkins">Blue green jenkins 구성</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#1-jenkins-pipeline-blue-ocean">1. jenkins pipeline 생성 (Blue ocean)</a></li>
+        
+            <li><a class="toctree-l4" href="#2-jenkins-blue-green">2. jenkins blue-green 배포</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../appendix/">기타</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Demo API Service Application</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>CICD 구성 &raquo;</li>
+        
+      
+    
+    <li>Jenkins 파이프라인 구성</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="blue-green-jenkins">Blue green jenkins 구성</h1>
+<h2 id="1-jenkins-pipeline-blue-ocean">1. jenkins pipeline 생성 (Blue ocean)</h2>
+<h3 id="1-1">1-1) 배포 진행 선행작업</h3>
+<blockquote>
+<ul>
+<li>application(frontend) 프로젝트에 JenkinsFile 이 설정되어 있어야 한다.</li>
+<li>code-deploy 의 어플리케이션과 그룹이 정상적으로 생성되어 있어야 된다.</li>
+<li>code-deploy 가 정상 수행 가능하도록 프로젝트에 appspec.yml이 정상적으로 설정되어 있어야 한다.<blockquote>
+<p>(appspec.yml 파일은 code-deploy에서 배포시에 사용하는 파일)</p>
+</blockquote>
+</li>
+</ul>
+</blockquote>
+<h3 id="1-2">1-2) 파이프라인 생성</h3>
+<blockquote>
+<ul>
+<li>'블루 오션 열기' 좌측 메뉴 클릭하여 파이프라인 생성
+<img alt="Screenshot" src="../../img/cicd-02-01.png" /></li>
+<li>배포 결과 확인
+<img alt="Screenshot" src="../../img/cicd-02-02.png" /></li>
+</ul>
+</blockquote>
+<h2 id="2-jenkins-blue-green">2. jenkins blue-green 배포</h2>
+<h3 id="2-1">2-1) 블루 그린 배포 파이프라인</h3>
+<p><img alt="Screenshot" src="../../img/cicd-02-03.png" /></p>
+<h3 id="2-2">2-2) 파이프라인 설명</h3>
+<blockquote>
+<p>JenkinsFile 참조</p>
+</blockquote>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Pre-Process') {
+            사전 준비 단계로 배포에 필요한 변수값 셋팅한다. (blue, green 사용 변수)
+        }
+
+        stage('Git clone') {
+            GitLab에서 frontend 프로젝트 clone 받는다.
+        }
+
+        stage ('Npm build') {
+            git에서 받은 frontend 프로젝트 배포 파일을 생성한다.
+        }
+
+        stage ('S3 upload') {
+            frontend 프로젝트 배포 파일을 zip 파일로 변경하여, S3에 저장한다.
+        }
+
+        stage('Preparing Auto-Scale Stage') {
+            blue 가 사용인 경우 green Auto-scaling group을 최소 단위로 활성화 시킨다.
+        }
+
+        stage('Deploy') {
+            AWS CodeDeploy를 실행하여, green에 frontend 를 배포한다.
+        }
+
+        stage('Health-Check') {
+            AWS CodeDeploy 배포 완료를 기다린다.
+        }
+
+        stage('Change LB-Routing') {
+            ALB에 맵핑되어 있는 blue와 green 의 target group을 변경하여 새로 배포돠어 있는 green을 사용가능하게 한다.
+        }
+
+        stage('Stopping Blue Stage') {
+            기존에 사용중인 blue 영역을 정지시킨다.
+        }
+    }
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../appendix/" class="btn btn-neutral float-right" title="기타">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../cicd-01/" class="btn btn-neutral" title="GitLab webhook 구성"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../cicd-01/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../../appendix/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>
