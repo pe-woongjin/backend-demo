@@ -87,16 +87,6 @@ pipeline {
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
 
-                    sh"""
-                    aws elbv2 describe-target-groups \
-                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
-                    --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
-
-                    cat ./TARGET_GROUP_LIST.json
-                    """
-
-                    def textValue = readFile("TARGET_GROUP_LIST.json")
-                    def tgList = toJson( textValue )
                     
                     env.CURR_ASG_NAME = ""
                     
@@ -117,6 +107,19 @@ pipeline {
                     /*
                     echo "desiredCnt: ${desiredCnt}"
                     */
+                    
+                    
+                    sh"""
+                    aws elbv2 describe-target-groups \
+                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
+                    --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
+
+                    cat ./TARGET_GROUP_LIST.json
+                    """
+
+                    def textValue = readFile("TARGET_GROUP_LIST.json")
+                    def tgList = toJson( textValue )
+                    
                     
                     initVariables( tgList )
                 }
