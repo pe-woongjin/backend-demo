@@ -62,14 +62,18 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
-def desiredAsgCount() {
+def desiredAsgCount(def currAsgName) {
   script {
+      echo "currAsgName---------: ${currAsgName}="
     return sh(
+        /*
       script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}'   """, 
       returnStdout: true)
+      */
+      return 0
     }
 }
 
@@ -113,11 +117,10 @@ pipeline {
                     
                     env.ASG_DESIRED = 0
                     
-                    def desiredCnt = desiredAsgCount() 
+                    def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables ----- desiredCnt: ${desiredCnt}"
-                    // showVariables()
                 }
             }
         }
