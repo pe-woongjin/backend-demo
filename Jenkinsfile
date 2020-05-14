@@ -102,6 +102,17 @@ pipeline {
                     
                     env.ASG_DESIRED = 0
                     
+                    sh"""
+                    aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
+                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
+                     --region ap-northeast-2 \
+                     --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT.json
+
+                    cat ./ASG_DESIRED_CNT.json
+                    """
+                    
+                    def desiredAsg = toJson( readFile("ASG_DESIRED_CNT.json") )
+                    
                     /*
                     
                     def desiredCnt = sh(script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
