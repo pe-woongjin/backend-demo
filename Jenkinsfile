@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
 
 def APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
 def TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
-def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/1b22b561377e078e"
+def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/7c0d341b56ccadc7"
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "backend"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
