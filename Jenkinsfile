@@ -62,11 +62,14 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
-def desiredInstanceCount(def currentAutoScaleName) {
+@NonCPS
+def desiredAsgCount(def currentAsgName) {
   script {
     return sh(
-      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currentAutoScaleName}`)==`true`]' \
-                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' --output text | awk -F' ' '{print NF; exit}'   """, 
+      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currentAsgName}`)==`true`]' \
+                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
+                     --region ap-northeast-2 \
+                     --output text | awk -F' ' '{print NF; exit}'   """, 
       returnStdout: true).trim()
     }
 }
@@ -110,7 +113,7 @@ pipeline {
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
-                    def desiredCnt = desiredInstanceCount( env.CURR_ASG_NAME ) 
+                    def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     env.ASG_DESIRED = (desiredCnt < 0 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables -----"
