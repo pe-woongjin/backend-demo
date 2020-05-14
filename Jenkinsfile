@@ -57,9 +57,20 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
       script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
                    --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
                    --region ap-northeast-2 \
-                   --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """, returnStdout: true).trim()
+                   --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """, 
+      returnStdout: true).trim()
     }
 }
+
+def desiredInstanceCount(def currentAutoScaleName) {
+  script {
+    return sh(
+      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currentAutoScaleName}`)==`true`]' \
+                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' --output text | awk -F' ' '{print NF; exit}'   """, 
+      returnStdout: true).trim()
+    }
+}
+
 
 def showVariables() {
   echo """
@@ -69,6 +80,7 @@ def showVariables() {
     ALB_ARN:             ${env.ALB_ARN}
     NEXT_TG_ARN:         ${env.NEXT_TG_ARN}
     NEXT_TARGET_GROUP:   ${env.NEXT_TARGET_GROUP}
+    ASG_DESIRED:         ${env.ASG_DESIRED}
     STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
     """
 }
@@ -96,7 +108,10 @@ pipeline {
                     def textValue = readFile("TARGET_GROUP_LIST.json")
                     def tgList = toJson(textValue)
                     echo "----- [Pre-Process] Initialize Variables -----"
-                    initVariables(tgList)
+                    initVariables( tgList )
+                    
+                    def desiredCnt = desiredInstanceCount( env.CURR_ASG_NAME ) 
+                    env.ASG_DESIRED = (desiredCnt < 0 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables -----"
                     showVariables()
@@ -107,12 +122,6 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                         echo"""
-    TARGET_RULE_ARN: ${TARGET_RULE_ARN}
-env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
-                    """
-                    
-                    
                     echo "----- [Build] showVariables -----"
                     showVariables()
 
@@ -164,7 +173,7 @@ env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
 
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-                    --desired-capacity ${ASG_DESIRED} \
+                    --desired-capacity ${env.ASG_DESIRED} \
                     --min-size ${ASG_MIN} \
                     --region ap-northeast-2
                     """
@@ -208,7 +217,7 @@ env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
                 script {
                     echo "----- [LB] Change load-balancer routing path -----"
                     sh"""
-                    aws elbv2 modify-rule --rule-arn ${TARGET_RULE_ARN} \
+                    aws elbv2 modify-rule --rule-arn ${env.TARGET_RULE_ARN} \
                     --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
                     --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
                     --region ap-northeast-2 --output json > CHANGED_LB_TARGET_GROUP.json
