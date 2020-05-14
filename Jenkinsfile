@@ -127,7 +127,6 @@ pipeline {
             }
         }
 
-        /*
         stage('Inspection') {
             parallel {
                 stage('Inspection') {
@@ -237,7 +236,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Post-Process') {
             steps {
                 echo "----- [Post-Process] post-process -----"
