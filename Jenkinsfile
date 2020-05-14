@@ -96,7 +96,7 @@ pipeline {
                      --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT.json
                     """
                     
-                    def desiredAsg = sh(script: "cat ./ASG_DESIRED_CNT.json", returnStdout: true)
+                    def desiredAsg = sh(script: "cat ./ASG_DESIRED_CNT.json", returnStdout: true).trim()
                     env.ASG_DESIRED = desiredAsg
                     
                     sh"""
