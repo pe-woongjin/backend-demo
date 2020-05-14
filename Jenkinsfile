@@ -62,6 +62,7 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
+@NonCPS
 def desiredAsgCount(def currAsgName) {
   script {
     echo "currAsgName---------: ${currAsgName}"
