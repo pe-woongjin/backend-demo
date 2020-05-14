@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: backend-demo
+    name: demo-api
   cache:
     ehcache:
       config: "classpath:ehcache.xml"

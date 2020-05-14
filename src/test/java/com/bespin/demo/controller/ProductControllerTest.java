@@ -1,5 +1,6 @@
 package com.bespin.demo.controller;
 
+import com.bespin.demo.AbstractTests;
 import com.bespin.demo.model.Product;
 import com.bespin.demo.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductController.class)
-public class ProductControllerTest {
+public class ProductControllerTest extends AbstractTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -79,11 +80,5 @@ public class ProductControllerTest {
         action.andExpect(jsonPath("$.[1].name").value("world2"));
     }
 
-    public static String toJson(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 }
