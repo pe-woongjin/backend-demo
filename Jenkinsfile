@@ -84,11 +84,6 @@ pipeline {
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
-                    
-                    echo"""
-    TARGET_RULE_ARN: ${TARGET_RULE_ARN}
-env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
-                    """
 
                     sh"""
                     aws elbv2 describe-target-groups \
@@ -112,6 +107,12 @@ env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
         stage('Build') {
             steps {
                 script {
+                         echo"""
+    TARGET_RULE_ARN: ${TARGET_RULE_ARN}
+env.TARGET_RULE_ARN: ${env.TARGET_RULE_ARN}
+                    """
+                    
+                    
                     echo "----- [Build] showVariables -----"
                     showVariables()
 
