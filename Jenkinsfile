@@ -73,7 +73,6 @@ def desiredAsgCount(def currentAsgName) {
     }
 }
 
-
 def showVariables() {
   echo """
 >   CURR_ASG_NAME:       ${env.CURR_ASG_NAME}
@@ -114,12 +113,14 @@ pipeline {
                     
                     
                     echo "env.CURR_ASG_NAME ----- ${env.CURR_ASG_NAME}"
-                     
+                    env.ASG_DESIRED = 0
+                    
+                    
                     // def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
                     // echo "----- [Pre-Process] showVariables ----- desiredCnt; ${desiredCnt}"
-                    showVariables()
+                    // showVariables()
                 }
             }
         }
