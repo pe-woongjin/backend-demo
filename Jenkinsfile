@@ -69,7 +69,7 @@ def desiredAsgCount(def currentAsgName) {
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}'   """, 
-      returnStdout: true).trim()
+      returnStdout: true)
     }
 }
 
