@@ -98,7 +98,8 @@ pipeline {
                     def textValue = readFile("TARGET_GROUP_LIST.json")
                     def tgList = toJson( textValue )
                     
-                    initVariables( tgList )
+                    env.CURR_ASG_NAME = ""
+                    
 
                     // env.ASG_DESIRED = 0
                     
@@ -117,6 +118,7 @@ pipeline {
                     echo "desiredCnt: ${desiredCnt}"
                     */
                     
+                    initVariables( tgList )
                 }
             }
         }
