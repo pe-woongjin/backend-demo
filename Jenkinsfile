@@ -51,10 +51,10 @@ def initVariables(def tgList) {
     }
 }
 
-def discoveryTargetRuleArn() {
+def discoveryTargetRuleArn(def listenerARN) {
   script {
     return sh(
-      script: """aws elbv2 describe-rules --listener-arn ${ALB_LISTENER_ARN} \
+      script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
                    --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${TARGET_GROUP_PREFIX}`)==`true`]}' \
                    --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS """, returnStdout: true).trim()
     }
@@ -81,7 +81,7 @@ pipeline {
                     echo """BRANCH: ${GIT_BRANCH}
 ----- [Pre-Process] Discovery Active Target Group -----"""
 
-                    def target_rule_arn = discoveryTargetRuleArn()
+                    def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN )
                     
                     echo"""
                     TARGET_RULE_ARN: ${TARGET_RULE_ARN}
