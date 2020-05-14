@@ -78,9 +78,7 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo """BRANCH: ${BRANCH}
-env.BRANCH: ${env.BRANCH}
-env.BRANCH_NAME: ${env.BRANCH_NAME}
+                    echo """BRANCH: ${GIT_BRANCH}
 ----- [Pre-Process] Discovery Active Target Group -----"""
 
                     def target_rule_arn = discoveryTargetRuleArn()
@@ -167,8 +165,8 @@ env.BRANCH_NAME: ${env.BRANCH_NAME}
                     --region ap-northeast-2
                     """
 
-                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 90 secs. -----"
-                    sh "sleep 90"
+                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 60 secs. -----"
+                    sh "sleep 60"
                 }
             }
         }
