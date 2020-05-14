@@ -27,6 +27,7 @@ def toJson(String text) {
     return parser.parseText( text )
 }
 
+@NonCPS
 def initVariables(def tgList) {
     tgList.each { tg ->
         String lbARN  = tg.LoadBalancerArns[0]
@@ -113,7 +114,7 @@ pipeline {
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
-                    // sh "sleep 3"
+                    sh "sleep 10"
                     
                     def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
