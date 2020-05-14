@@ -64,21 +64,26 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
 
 def desiredAsgCount(def currAsgName) {
   script {
-    
-    
-      echo "currAsgName---------: ${currAsgName}"
+    echo "currAsgName---------: ${currAsgName}"
       
+    sh"""
+    aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
+     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
+     --region ap-northeast-2 \
+     --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT
+    """
       
+    return sh(script: "cat ./ASG_DESIRED_CNT", returnStdout: true)
+
     /*  
     return sh(
-      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
+      script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}'   """, 
       returnStdout: true)
-    }
-    */
-    return 0
+    } */
+      
   }
 }
 
