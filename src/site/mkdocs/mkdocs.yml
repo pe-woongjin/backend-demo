@@ -1,0 +1,21 @@
+site_name: Demo API Service Application
+
+nav:
+  - demo-api: index.md
+  - 아키텍처:
+      - 인프라 아키텍처:    arch/arch-01.md
+      - CICD 아키텍처:      arch/arch-02.md
+  - 인프라 구성:
+      - IAM 구성:           iac/infra-01.md
+      - VPC 리소스 구성:     iac/infra-02.md
+      - CodeDeploy 구성:    iac/infra-03.md
+  - 베이스 이미지 구성:      iac/baseimage-01.md
+  - Application 프로젝트 템플릿: app/app-01.md
+  - CICD 구성:
+      - GitLab webhook 구성:    cicd/cicd-01.md
+      - Jenkins 파이프라인 구성: cicd/cicd-02.md
+  - 기타: appendix.md
+
+theme: readthedocs
+
+
