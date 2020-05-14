@@ -27,7 +27,6 @@ def toJson(String text) {
     return parser.parseText( text )
 }
 
-@NonCPS
 def initVariables(def tgList) {
     tgList.each { tg ->
         String lbARN  = tg.LoadBalancerArns[0]
@@ -63,7 +62,6 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
-@NonCPS
 def desiredAsgCount(def currentAsgName) {
   script {
     return sh(
@@ -116,9 +114,7 @@ pipeline {
                     
                     
                     echo "env.CURR_ASG_NAME ----- ${env.CURR_ASG_NAME}"
-                    
-                    sh "sleep 10"
-                    
+                     
                     // def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
