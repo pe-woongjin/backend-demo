@@ -56,6 +56,7 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     return sh(
       script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
                    --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
+                   --region ap-northeast-2 \
                    --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """, returnStdout: true).trim()
     }
 }
