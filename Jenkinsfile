@@ -113,10 +113,10 @@ pipeline {
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
-                    sh "sleep 3"
+                    // sh "sleep 3"
                     
-                    def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
-                    env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
+                    // def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
+                    // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables -----"
                     showVariables()
