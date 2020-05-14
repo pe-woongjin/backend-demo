@@ -3,6 +3,8 @@ package com.bespin.demo.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.PathSelectors;
@@ -17,10 +19,24 @@ import java.util.Collections;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig implements WebMvcConfigurer {
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
 
     @Value("${aws.alb.dns}")
     public String dns;
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(dns);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
 
     @Bean
     public Docket docket() {
@@ -36,17 +52,12 @@ public class SwaggerConfig implements WebMvcConfigurer {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "Woongjin Backend-demo REST API",
+                "Woongjin Demo REST API Application",
                 "UI Information : " + dns,
                 "2.9.2",
                 "",
-                new Contact("Woonjin", "www.wjthinkbig.com", ""),
+                new Contact("Woonjin", "www.wj-think-big.com", ""),
                 "", "", Collections.emptyList());
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-    }
 }

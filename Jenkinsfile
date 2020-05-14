@@ -2,6 +2,8 @@ import groovy.json.JsonSlurper
 
 def APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
 def TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
+
+def ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341"
 def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/7c0d341b56ccadc7"
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "backend"
@@ -10,8 +12,9 @@ def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
 
 def DEPLOY_GROUP_NAME   = ""
 def DEPLOYMENT_ID       = ""
-def ASG_DESIRED         = 1
+def ASG_DESIRED         = 1     /* 현재 ELB에 연결된 BLUE 스테이지의 엑티브 인스턴스 수로 Green 스테이지에 배포시 동일하게 생성 한다 */
 def ASG_MIN             = 1
+def STAGED_ACTIVE_CNT   = 0     /* 현재 ELB에 연결되지 않은 Green 스테이지의 인스턴스 수로 배포를 위해선 반드시 0 이여야 한다. */
 def CURR_ASG_NAME       = ""
 def NEXT_ASG_NAME       = ""
 def NEXT_TG_ARN         = ""
@@ -48,14 +51,24 @@ def initVariables(def tgList) {
     }
 }
 
+def discoveryTargetRuleArn() {
+  script {
+    return sh(
+      script: """aws elbv2 describe-rules --listener-arn ${ALB_LISTENER_ARN} \
+                   --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${TARGET_GROUP_PREFIX}`)==`true`]}' \
+                   --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS """, returnStdout: true).trim()
+    }
+}
+
 def showVariables() {
   echo """
->   CURR_ASG_NAME:     ${env.CURR_ASG_NAME}
-    NEXT_ASG_NAME:     ${env.NEXT_ASG_NAME}
-    DEPLOY_GROUP_NAME: ${env.DEPLOY_GROUP_NAME}
-    ALB_ARN:           ${env.ALB_ARN}
-    NEXT_TG_ARN:       ${env.NEXT_TG_ARN}
-    NEXT_TARGET_GROUP: ${env.NEXT_TARGET_GROUP}
+>   CURR_ASG_NAME:       ${env.CURR_ASG_NAME}
+    NEXT_ASG_NAME:       ${env.NEXT_ASG_NAME}
+    DEPLOY_GROUP_NAME:   ${env.DEPLOY_GROUP_NAME}
+    ALB_ARN:             ${env.ALB_ARN}
+    NEXT_TG_ARN:         ${env.NEXT_TG_ARN}
+    NEXT_TARGET_GROUP:   ${env.NEXT_TARGET_GROUP}
+    STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
     """
 }
 
@@ -65,10 +78,10 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo "----- [Pre-Process] showVariables -----"
-                    showVariables()
-
                     echo "----- [Pre-Process] Discovery Active Target Group -----"
+
+                    // discoveryTargetRuleArn();
+
                     sh"""
                     aws elbv2 describe-target-groups \
                     --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
@@ -125,7 +138,7 @@ pipeline {
                     mkdir -p deploy-bundle/scripts
                     cp ./appspec.yml ./deploy-bundle
                     cp ./target/backend-demo.jar ./deploy-bundle/
-                    cp -rf ./scripts ./deploy-bundle
+                    cp -rf ./src/main/resources/scripts ./deploy-bundle
                     cd ./deploy-bundle
                     zip -r ${BUNDLE_NAME} ./
                     """

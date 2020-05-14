@@ -1,8 +1,8 @@
-# Woongjin backend-demo
-    Framework : SpringBoot 
+# Woongjin demo-api
+    Framework : spring-boot 
     Build Tool : Maven
     API Document Tool : Swagger
-    Test : JUnit5
+    Test : JUnit-5
     
 #### 빌드 방법
 ##### 1. Git checkout
@@ -12,7 +12,7 @@
     $ cd workspace
     
     /* git clone */
-    $ git clone https://github.com/pe-woongjin/backend-demo.git
+    $ git clone https://github.com/pe-woongjin/demo-api.git
     $ cd ~/workspace/backend-demo
     
 ##### 2. Maven build
