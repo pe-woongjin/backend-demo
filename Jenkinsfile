@@ -130,7 +130,7 @@ pipeline {
                     
                     // def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     
-                    def desiredCnt = sh(script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
+                    def desiredCnt = sh(script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}' """,  returnStdout: true)
