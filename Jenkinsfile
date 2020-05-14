@@ -78,9 +78,17 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo "----- [Pre-Process] Discovery Active Target Group -----"
+                    echo """BRANCH: ${BRANCH}
+env.BRANCH: ${env.BRANCH}
+env.BRANCH_NAME: ${env.BRANCH_NAME}
+----- [Pre-Process] Discovery Active Target Group -----"""
 
-                    // discoveryTargetRuleArn();
+                    def target_rule_arn = discoveryTargetRuleArn()
+                    
+                    echo"""
+                    TARGET_RULE_ARN: ${TARGET_RULE_ARN}
+                    target_rule_arn: ${target_rule_arn}
+                    """
 
                     sh"""
                     aws elbv2 describe-target-groups \
