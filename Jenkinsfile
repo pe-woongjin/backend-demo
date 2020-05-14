@@ -86,28 +86,18 @@ pipeline {
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
-
-                    
-                    env.CURR_ASG_NAME = ""
-                    
-
-                    // env.ASG_DESIRED = 0
+ 
+                    def ASG_PREFIX_NAME = "demo-apne2-dev-api" 
                     
                     sh"""
-                    aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
+                    aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${ASG_PREFIX_NAME}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
                      --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT.json
-
-                    cat ./ASG_DESIRED_CNT.json
                     """
                     
-                    // def desiredAsg = toJson( readFile("ASG_DESIRED_CNT.json") )
-                    
-                    /*
-                    echo "desiredCnt: ${desiredCnt}"
-                    */
-                    
+                    def desiredAsg = sh(script: "cat ./ASG_DESIRED_CNT.json", returnStdout: true)
+                    env.ASG_DESIRED = desiredAsg
                     
                     sh"""
                     aws elbv2 describe-target-groups \
@@ -119,7 +109,6 @@ pipeline {
 
                     def textValue = readFile("TARGET_GROUP_LIST.json")
                     def tgList = toJson( textValue )
-                    
                     
                     initVariables( tgList )
                 }
