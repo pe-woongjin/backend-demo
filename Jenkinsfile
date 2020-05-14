@@ -69,9 +69,8 @@ def desiredAsgCount(def currAsgName) {
       
     sh"""
     aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
-     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
      --region ap-northeast-2 \
-     --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT
+     --output json | wc -l > ASG_DESIRED_CNT
     """
       
     return sh(script: "cat ./ASG_DESIRED_CNT", returnStdout: true)
@@ -81,7 +80,7 @@ def desiredAsgCount(def currAsgName) {
       script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${currAsgName}`)==`true`]' \
                      --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
                      --region ap-northeast-2 \
-                     --output text | awk -F' ' '{print NF; exit}'   """, 
+                     --output json | wc -l   """, 
       returnStdout: true)
     } */
       
