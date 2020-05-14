@@ -114,12 +114,15 @@ pipeline {
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
+                    
+                    echo "env.CURR_ASG_NAME ----- ${env.CURR_ASG_NAME}"
+                    
                     sh "sleep 10"
                     
-                    def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
+                    // def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
                     // env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
-                    echo "----- [Pre-Process] showVariables ----- desiredCnt; ${desiredCnt}"
+                    // echo "----- [Pre-Process] showVariables ----- desiredCnt; ${desiredCnt}"
                     showVariables()
                 }
             }
