@@ -6,7 +6,7 @@ def TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
 def ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341"
 def TARGET_RULE_ARN     = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener-rule/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341/7c0d341b56ccadc7"
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
-def S3_PATH             = "backend"
+def S3_PATH             = "demo-api"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
 def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
 
@@ -107,7 +107,7 @@ pipeline {
                     echo "----- [Build] showVariables -----"
                     showVariables()
 
-                    echo "----- [Build] Build backend-demo -----"
+                    echo "----- [Build] Build demo-api -----"
                     sh "mvn clean package -Dmaven.test.skip=true"
                 }
             }
@@ -137,7 +137,7 @@ pipeline {
                     rm -rf ./deploy-bundle
                     mkdir -p deploy-bundle/scripts
                     cp ./appspec.yml ./deploy-bundle
-                    cp ./target/backend-demo.jar ./deploy-bundle/
+                    cp ./target/demo-api.jar ./deploy-bundle/
                     cp -rf ./src/main/resources/scripts ./deploy-bundle
                     cd ./deploy-bundle
                     zip -r ${BUNDLE_NAME} ./
