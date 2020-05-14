@@ -12,7 +12,7 @@ def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
 
 def DEPLOY_GROUP_NAME   = ""
 def DEPLOYMENT_ID       = ""
-def ASG_DESIRED         = "1"   /* 현재 ELB에 연결된 BLUE 스테이지의 엑티브 인스턴스 수로 Green 스테이지에 배포시 동일하게 생성 한다 */
+def ASG_DESIRED         = 0     /* 현재 ELB에 연결된 BLUE 스테이지의 엑티브 인스턴스 수로 Green 스테이지에 배포시 동일하게 생성 한다 */
 def ASG_MIN             = 1
 def STAGED_ACTIVE_CNT   = 0     /* 현재 ELB에 연결되지 않은 Green 스테이지의 인스턴스 수로 배포를 위해선 반드시 0 이여야 한다. */
 def CURR_ASG_NAME       = ""
@@ -113,8 +113,10 @@ pipeline {
                     echo "----- [Pre-Process] Initialize Variables -----"
                     initVariables( tgList )
                     
+                    sh "sleep 3"
+                    
                     def desiredCnt = desiredAsgCount( env.CURR_ASG_NAME ) 
-                    env.ASG_DESIRED = (desiredCnt < "1" ? "1" : desiredCnt)
+                    env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
 
                     echo "----- [Pre-Process] showVariables -----"
                     showVariables()
