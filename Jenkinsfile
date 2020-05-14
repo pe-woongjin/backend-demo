@@ -97,10 +97,10 @@ pipeline {
 
                     def textValue = readFile("TARGET_GROUP_LIST.json")
                     def tgList = toJson( textValue )
-                    echo "----- [Pre-Process] Initialize Variables -----"
-                    initVariables( tgList )
                     
-                    env.ASG_DESIRED = 0
+                    initVariables( tgList )
+
+                    // env.ASG_DESIRED = 0
                     
                     sh"""
                     aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
@@ -111,17 +111,9 @@ pipeline {
                     cat ./ASG_DESIRED_CNT.json
                     """
                     
-                    def desiredAsg = toJson( readFile("ASG_DESIRED_CNT.json") )
+                    // def desiredAsg = toJson( readFile("ASG_DESIRED_CNT.json") )
                     
                     /*
-                    
-                    def desiredCnt = sh(script: """aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`]' \
-                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
-                     --region ap-northeast-2 \
-                     --output json | wc -l   """,  returnStdout: true)
-                    
-                    env.ASG_DESIRED = (desiredCnt < 1 ? 1 : desiredCnt)
-
                     echo "desiredCnt: ${desiredCnt}"
                     */
                     
