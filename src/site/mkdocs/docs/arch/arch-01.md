@@ -1,7 +1,7 @@
-## Infra Architecture
+# Infra Architecture
 
 
-### 인프라 아키텍처 도메인 정의
+## 인프라 아키텍처 도메인 정의
 
 인프라 리소스 구분| 환경 및 서비스 모듈 | 
 ------------ | -------------- | 
@@ -12,7 +12,7 @@ Environment  | prd            |
 
 ---
 
-### 인프라 아키텍처 논리 모델
+## 인프라 아키텍처 논리 모델
 ![demo-api infrastructure](../img/demo-api-infra-archi.png)
 
 demo-api 서비스 출시를 위해선 vpc, alb, subnet등 AWS 콘솔에서 필요한 리소스를 사전에 구성 하여야 합니다.

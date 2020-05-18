@@ -1,62 +1,59 @@
-# Blue green jenkins 구성
+# Gitlab Jenkins 인증 구성
 
-## 1. jenkins pipeline 생성 (Blue ocean)
-### 1-1) 배포 진행 선행작업
-> - application(frontend) 프로젝트에 JenkinsFile 이 설정되어 있어야 한다.
-> - code-deploy 의 어플리케이션과 그룹이 정상적으로 생성되어 있어야 된다.
-> - code-deploy 가 정상 수행 가능하도록 프로젝트에 appspec.yml이 정상적으로 설정되어 있어야 한다.
->>(appspec.yml 파일은 code-deploy에서 배포시에 사용하는 파일)
+## 1. GitLab 토큰 생성
 
-### 1-2) 파이프라인 생성
-> - '블루 오션 열기' 좌측 메뉴 클릭하여 파이프라인 생성
-![Screenshot](../img/cicd-02-01.png)
-> - 배포 결과 확인
-![Screenshot](../img/cicd-02-02.png)
+Gitlab Administrator 사용자로 로그인 하고 작업을 진행 합니다.
 
-## 2. jenkins blue-green 배포 
-### 2-1) 블루 그린 배포 파이프라인
-![Screenshot](../img/cicd-02-03.png)
-### 2-2) 파이프라인 설명
-> JenkinsFile 참조
-~~~
-pipeline {
-    agent any
-    stages {
-        stage('Pre-Process') {
-            사전 준비 단계로 배포에 필요한 변수값 셋팅한다. (blue, green 사용 변수)
-        }
-        
-        stage('Git clone') {
-            GitLab에서 frontend 프로젝트 clone 받는다.
-        }
-        
-        stage ('Npm build') {
-            git에서 받은 frontend 프로젝트 배포 파일을 생성한다.
-        }
-        
-        stage ('S3 upload') {
-            frontend 프로젝트 배포 파일을 zip 파일로 변경하여, S3에 저장한다.
-        }
-        
-        stage('Preparing Auto-Scale Stage') {
-            blue 가 사용인 경우 green Auto-scaling group을 최소 단위로 활성화 시킨다.
-        }
-        
-        stage('Deploy') {
-            AWS CodeDeploy를 실행하여, green에 frontend 를 배포한다.
-        }
-        
-        stage('Health-Check') {
-            AWS CodeDeploy 배포 완료를 기다린다.
-        }
-        
-        stage('Change LB-Routing') {
-            ALB에 맵핑되어 있는 blue와 green 의 target group을 변경하여 새로 배포돠어 있는 green을 사용가능하게 한다.
-        }
-        
-        stage('Stopping Blue Stage') {
-            기존에 사용중인 blue 영역을 정지시킨다.
-        }
-    }
-}
-~~~
+- 상단 로그인 툴팁의 "Settings" 메뉴를 시작으로 Access Token을 생성을 시작합니다.
+![Screenshot](../img/gitlab-01.png)
+
+<br/>
+
+- 좌측 "Access Tokens" 메뉴를 클릭하고 Token 네임, 만료일자, 액세스 범위를 선택하고 화면 하단의 "Create personal access token"을 클릭 합니다.
+![Screenshot](../img/gitlab-02.png)
+
+<br/>
+
+- 새롭게 생성된 Personal Access Token을 클립 보드에 복사대 둡니다. 이 토큰은 Jenkins가 Gitlab에 액세스할 때 사용 됩니다.
+![Screenshot](../img/gitlab-03.png)
+
+화면 하단엔 신규로 생성된 활성화된 토큰(예: jenkins)에 대한 정보가 표시 됩니다.
+![Screenshot](../img/gitlab-04.png)
+
+## 2. Jenkins Credentials 등록
+
+Jenkins Administrator 사용자로 로그인 하고 작업을 진행 합니다.
+
+- Jenkins 메인 화면의 "Credentials" 메뉴를 클릭 합니다.
+![jenkins-config](../img/jenkins-01.png)
+
+<br/>
+
+- "Stores scoped to Jenkins" 에 (Global) 영역의 툴팁 메뉴를 통해 "Add Credentials"을 클릭 하고 Gitlab 토큰 정보를 등록 합니다.
+![jenkins-config](../img/jenkins-02.png)
+
+<br/>
+
+- Gitlab Access Token 정보 등록
+아래 화면과 같이 주요 정보를 입력 합니다. 특히, API token 항목 값은 이전에 생성한 Gitlab Access Token 값을 기입 합니다.
+![jenkins-config](../img/jenkins-03.png)
+
+<br/>
+
+- Gitlab Access Token 등록 결과 확인
+![jenkins-config](../img/jenkins-04.png)
+
+위 화면과 같이 등록된 Gitlab Access Token 정보를 확인할 수 있습니다.
+
+<br/>
+
+- Gitlab Connection 등록
+Jenkins의 프로젝트가 Gitlab 서버에 액세스 하기 위해 공통 Endpoint를 등록 합니다.
+
+![jenkins-config](../img/jenkins-05.png)
+
+<br/>
+
+- "Jenkins 관리"의 "시스템 설정"에서 아래와 같이 Gitlab의 커넥션 정보를 구성 할 수 있습니다.
+![jenkins-config](../img/jenkins-06.png)
+

@@ -1,20 +1,24 @@
 site_name: Demo API Service Application
 
 nav:
-  - demo-api: index.md
+  - 소개: index.md
   - 아키텍처:
       - 인프라 아키텍처:    arch/arch-01.md
       - CICD 아키텍처:      arch/arch-02.md
+      - 애플리케이션 아키텍처: app/app-01.md
   - 인프라 구성:
       - IAM 구성:           iac/infra-01.md
       - VPC 리소스 구성:     iac/infra-02.md
       - CodeDeploy 구성:    iac/infra-03.md
-  - 베이스 이미지 구성:      iac/baseimage-01.md
-  - Application 프로젝트 템플릿: app/app-01.md
+  - 베이스 이미지 구성:      iac/infra-10.md
   - CICD 구성:
-      - GitLab webhook 구성:    cicd/cicd-01.md
-      - Jenkins 파이프라인 구성: cicd/cicd-02.md
-  - 기타: appendix.md
+      - GitOps 구성 소개:          cicd/cicd-01.md
+      - Gitlab Jenkins 인증 구성:  cicd/cicd-02.md
+      - Jenkins CICD 구성:         cicd/cicd-03.md
+      - Jenkins Webhook 구성:      cicd/cicd-04.md
+      - CICD 상세 흐름:            cicd/cicd-05.md
+#  - 기타: appendix.md
+
 
 theme: readthedocs
 
