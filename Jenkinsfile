@@ -163,7 +163,7 @@ def validate() {
   if(env.NEXT_ASG_NAME == "") {
     error "배포될 타겟 AutoScalingGroup을 확인 할 수 없습니다. [AWS 관리 콘솔 > EC2 > Auto Scaling 그룹]을 확인 하세요. "
   }
-  if(!env.VALID_TARGET_STAGE) {
+  if("${env.VALID_TARGET_STAGE}" == "false") {
     echo "애러가 발생 하였습니다......"
     error "배포될 타겟 AutoScalingGroup에 인스턴스가 존재 합니다. [AWS 관리 콘솔 > EC2 > Auto Scaling 그룹] '${env.NEXT_ASG_NAME}'에서 모든 인스턴스가 정리된 후 배포를 진행 하세요. "
   }
