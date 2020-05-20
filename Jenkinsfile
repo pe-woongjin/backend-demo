@@ -62,17 +62,32 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     }
 }
 
+def getCurrentAsgActiveInstances() {
+  return sh(script: """
+     aws autoscaling describe-auto-scaling-groups \
+     --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
+     --region ap-northeast-2 \
+     --output text |grep InService | wc -l            
+    """, returnStdout: true).toInteger()
+}
+
+
 def showVariables() {
-  echo """
->   CURR_ASG_NAME:       ${env.CURR_ASG_NAME}
-    NEXT_ASG_NAME:       ${env.NEXT_ASG_NAME}
-    DEPLOY_GROUP_NAME:   ${env.DEPLOY_GROUP_NAME}
-    ALB_ARN:             ${env.ALB_ARN}
-    NEXT_TG_ARN:         ${env.NEXT_TG_ARN}
-    NEXT_TARGET_GROUP:   ${env.NEXT_TARGET_GROUP}
-    ASG_DESIRED:         ${env.ASG_DESIRED}
-    STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
-    """
+  echo """showVariables -----
+CURR_ASG_NAME:       ${env.CURR_ASG_NAME}
+NEXT_ASG_NAME:       ${env.NEXT_ASG_NAME}
+DEPLOY_GROUP_NAME:   ${env.DEPLOY_GROUP_NAME}
+ALB_ARN:             ${env.ALB_ARN}
+NEXT_TG_ARN:         ${env.NEXT_TG_ARN}
+NEXT_TARGET_GROUP:   ${env.NEXT_TARGET_GROUP}
+ASG_DESIRED:         ${env.ASG_DESIRED}
+STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
+   """
+}
+
+def validate() {
+  showVariables();
+
 }
 
 pipeline {
@@ -104,21 +119,9 @@ pipeline {
 
         stage('Validate-Env') {
           steps {
-            script {
-            
-              def desiredAsg = sh(script: """
-                                  aws autoscaling describe-auto-scaling-groups \
-                                  --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
-                                  --region ap-northeast-2 \
-                                  --output text |grep InService | wc -l            
-                                 """, returnStdout: true).toInteger()
-            
-              if (desiredAsg > 0) {
-                env.ASG_DESIRED = desiredAsg
-              } else {
-                env.ASG_DESIRED = 1
-              }
-                
+            script {            
+              def desiredAsg = getCurrentAsgActiveInstances()
+              env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)            
               echo "ASG_DESIRED: ${desiredAsg}"
 
             }
