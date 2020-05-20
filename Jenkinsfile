@@ -113,6 +113,7 @@ def currentAsgActiveInstances() {
 }
 
 def checkAsgBootupInstances() {
+    echo "checkAsgBootupInstances"
     for (int i = 1; i <= 3; i++) {
         sh "sleep 10"
         echo "${i} - Wating for bootup instances"
@@ -270,13 +271,7 @@ pipeline {
             
             steps {
                 script {
-                    waitUntil {
-                        try {
-                            checkAsgBootupInstances()
-                        } catch(e) {
-                            throw e                            
-                        }                       
-                    }
+                    checkAsgBootupInstances()
                     echo "boot-up ec2 instances ======="
                 }
                 
