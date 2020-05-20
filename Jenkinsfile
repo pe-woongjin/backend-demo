@@ -83,7 +83,7 @@ STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
 }
 
 def validate() {
-  echo """validate -----""
+  echo"validate -----"
 
 }
 
@@ -93,8 +93,7 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo """Discovery Active Target Group ----- 
-GIT Branch: $GIT_BRANCH"""
+                    echo """Discovery Active Target Group ----- \nGIT Branch: $GIT_BRANCH"""
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
@@ -118,6 +117,7 @@ GIT Branch: $GIT_BRANCH"""
         stage('Validate-Env') {
           steps {
             script {
+            
               def desiredAsg = getCurrentAsgActiveInstances()
               env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)
               echo "ASG_DESIRED: ${desiredAsg}"
@@ -125,9 +125,11 @@ GIT Branch: $GIT_BRANCH"""
               showVariables()
               
               validate()
+
             }
           }
         }
+
 /*
         stage('Build') {
             steps {
