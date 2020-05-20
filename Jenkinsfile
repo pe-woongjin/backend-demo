@@ -81,9 +81,7 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo """Discovery Active Target Group -----
-                    GIT Branch: $GIT_BRANCH
-                    """
+                    echo """Discovery Active Target Group ----- \nGIT Branch: $GIT_BRANCH"""
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
@@ -120,7 +118,8 @@ pipeline {
               } else {
                 env.ASG_DESIRED = 1
               }
-              
+                
+              echo "ASG_DESIRED: ${desiredAsg}"
 
             }
           }
