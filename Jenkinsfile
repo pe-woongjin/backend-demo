@@ -263,17 +263,18 @@ pipeline {
             steps {
                 script {
 
-                  timeout(time: 90, unit: "SECONDS"){
+                  timeout(time: 60, unit: 'SECONDS'){
                     waitUntil {
                       try {
-                        for (int i = 0; i <= 10; i++) {
+                        for (int i = 1; i <= 5; i++) {
                           def instanceCnt = nextAsgBootupInstances()
                           if(instanceCnt > 0) {
+                            echo "OK-GOOOOOOOD!!!!"
                             return true;
                           }
                           else {
-                           echo "Wating for bootup instances"
-                           sh "sleep 10"
+                            echo "${i} - Wating for bootup instances"
+                            sh "sleep 20"
                           }
                         }
                       } catch (exception) {
@@ -282,6 +283,7 @@ pipeline {
                       }
                     }                      
                   }
+                  echo "times-out"
                 }
             }
         }        
