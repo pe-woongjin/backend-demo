@@ -205,10 +205,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    echo "----- [Build] showVariables -----"
-                    showVariables()
-
-                    echo "----- [Build] Build demo-api -----"
+                    echo "Build] Build demo-api -----"
                     sh "mvn clean package -Dmaven.test.skip=true"
                 }
             }
@@ -218,13 +215,13 @@ pipeline {
             parallel {
                 stage('Inspection') {
                     steps {
-                        echo "----- [Inspection] Execute Code-Inspection like sonarqube -----"
+                        echo "[Inspection] Execute Code-Inspection like sonarqube"
                     }
                 }
 
                 stage('Coverage') {
                     steps {
-                        echo "----- [Coverage] Unit test like JUnit -----"
+                        echo "[Coverage] Unit test like JUnit"
                     }
                 }
             }
@@ -233,7 +230,7 @@ pipeline {
         stage('Upload-Bundle') {
             steps {
                 script {
-                    echo "----- [Upload] Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}' -----"
+                    echo "[Upload] Uploading Bundle '${BUNDLE_NAME}' to '${S3_PATH}/${BUNDLE_NAME}'"
                     sh """
                     rm -rf ./deploy-bundle
                     mkdir -p deploy-bundle/scripts
@@ -258,7 +255,7 @@ pipeline {
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
                     --desired-capacity 5 \
                     --min-size ${ASG_MIN} \
-                    --region ap-northeast-2
+                    --region ap-northeast-2 ${env.AWS_PROFILE}
                     """
                     
                     // ${env.ASG_DESIRED}
@@ -282,7 +279,8 @@ pipeline {
                     aws deploy create-deployment \
                     --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
                     --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
-                    --region ap-northeast-2 --output json > DEPLOYMENT_ID.json
+                    --region ap-northeast-2 ${env.AWS_PROFILE} \
+                    --output json > DEPLOYMENT_ID.json
                     """
 
                     def textValue = readFile("DEPLOYMENT_ID.json")
@@ -294,8 +292,7 @@ pipeline {
 
         stage('Health-Check') {
             steps {
-                echo "----- [Health-Check] DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
-                echo "----- [Health-Check] Waiting codedeploy processing -----"
+                echo "Health-Check Waiting codedeploy processing.  DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
                 timeout(time: 3, unit: 'MINUTES'){                                         
                   awaitDeploymentCompletion("${env.DEPLOYMENT_ID}")
                 }
@@ -311,7 +308,8 @@ pipeline {
                     aws elbv2 modify-rule --rule-arn ${env.TARGET_RULE_ARN} \
                     --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
                     --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
-                    --region ap-northeast-2 --output json > CHANGED_LB_TARGET_GROUP.json
+                    --region ap-northeast-2 ${env.AWS_PROFILE} \
+                    --output json > CHANGED_LB_TARGET_GROUP.json
 
                     cat ./CHANGED_LB_TARGET_GROUP.json
                     """
@@ -327,7 +325,7 @@ pipeline {
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.CURR_ASG_NAME}  \
                     --desired-capacity 0 --min-size 0 \
-                    --region ap-northeast-2
+                    --region ap-northeast-2 ${env.AWS_PROFILE}
                     """
                 }
             }
