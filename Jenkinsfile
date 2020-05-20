@@ -240,6 +240,7 @@ pipeline {
             }
         }
 */
+
         stage('Preparing Auto-Scale Stage') {
             /*
             steps {
@@ -261,25 +262,29 @@ pipeline {
             
             steps {
                 script {
-                  
-                  echo "waiting....."
-                  timeout(time: 120, unit: 'SECONDS'){
+
+                  timeout(time: 90, unit: "SECONDS"){
                     waitUntil {
                       try {
-                          def bootupIns = nextAsgBootupInstances()
-                          if(bootupIns > 0) {
-                            return true
+                        for (int i = 0; i <= 10; i++) {
+                          def instanceCnt = nextAsgBootupInstances()
+                          if(instanceCnt > 0) {
+                            return true;
                           }
+                          else {
+                           echo "Wating for bootup instances"
+                           sh "sleep 10"
+                          }
+                        }
                       } catch (exception) {
-                          return false
+                        error = ""
+                        return false;
                       }
                     }                      
                   }
-                    
                 }
-                echo "OK....."
             }
-        }
+        }        
         
 /*
         stage('Deploy') {
