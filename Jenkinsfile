@@ -112,6 +112,23 @@ def currentAsgActiveInstances() {
     """, returnStdout: true).toInteger()
 }
 
+def checkAsgBootupInstances() {
+    for (int i = 1; i <= 3; i++) {
+        sh "sleep 10"
+        echo "${i} - Wating for bootup instances"
+        def cnt = sh(script: """
+             aws autoscaling describe-auto-scaling-groups \
+             --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.NEXT_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
+             --region ap-northeast-2 ${env.AWS_PROFILE} \
+             --output text |grep InService | wc -l
+            """, returnStdout: true).toInteger()
+        if(cnt > 0 || i == 2) {
+            break
+        }        
+    }
+    return true
+}
+
 def validateTargetAutoScalingStage() {
   def validTargetStage = sh(script: """
        aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${env.NEXT_ASG_NAME}`].InstanceId' \
@@ -148,23 +165,6 @@ def validate() {
   if(env.VALID_TARGET_STAGE == false) {
     error "배포될 타겟 AutoScalingGroup에 인스턴스가 존재 합니다. [AWS 관리 콘솔 > EC2 > Auto Scaling 그룹] '${env.NEXT_ASG_NAME}'에서 모든 인스턴스가 정리된 후 배포를 진행 하세요. "
   }
-}
-
-def checkAsgBootupInstances() {
-    for (int i = 1; i <= 3; i++) {
-        sh "sleep 10"
-        echo "${i} - Wating for bootup instances"
-        def cnt = sh(script: """
-             aws autoscaling describe-auto-scaling-groups \
-             --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.NEXT_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
-             --region ap-northeast-2 ${env.AWS_PROFILE} \
-             --output text |grep InService | wc -l
-            """, returnStdout: true).toInteger()
-        if(cnt > 0) {
-            break
-        }        
-    }
-    return true
 }
 
 pipeline {
