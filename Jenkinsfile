@@ -103,10 +103,19 @@ def discoveryTargetGroup() {
   return readFile("TARGET_GROUP_LIST.json")
 }
 
-def getCurrentAsgActiveInstances() {
+def currentAsgActiveInstances() {
   return sh(script: """
      aws autoscaling describe-auto-scaling-groups \
      --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
+     --region ap-northeast-2 ${env.AWS_PROFILE} \
+     --output text |grep InService | wc -l
+    """, returnStdout: true).toInteger()
+}
+
+def nextAsgBootupInstances() {
+  return sh(script: """
+     aws autoscaling describe-auto-scaling-groups \
+     --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.NEXT_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
      --region ap-northeast-2 ${env.AWS_PROFILE} \
      --output text |grep InService | wc -l
     """, returnStdout: true).toInteger()
@@ -174,8 +183,7 @@ pipeline {
         stage('Validate-Env') {
           steps {
             script {
-            
-              def desiredAsg = getCurrentAsgActiveInstances()
+              def desiredAsg  = currentAsgActiveInstances()
               env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)
               env.VALID_TARGET_STAGE = validateTargetAutoScalingStage()
               showVariables()
