@@ -120,9 +120,10 @@ pipeline {
               def desiredAsg = getCurrentAsgActiveInstances()
               env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)
               echo "ASG_DESIRED: ${desiredAsg}"
-              showVariables();
-              validate();
               
+              showVariables()
+              
+              validate()
             }
           }
         }
