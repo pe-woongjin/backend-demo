@@ -297,8 +297,11 @@ pipeline {
         stage('Health-Check') {
             steps {
                 echo "Health-Check Waiting codedeploy processing.  DEPLOYMENT_ID ${env.DEPLOYMENT_ID} -----"
-                timeout(time: 3, unit: 'MINUTES'){                                         
-                  awaitDeploymentCompletion("${env.DEPLOYMENT_ID}")
+                
+                withAWS( region: "ap-northeast-2", profile: "default" ) {
+                    timeout(time: 3, unit: 'MINUTES'){                                         
+                       awaitDeploymentCompletion("${env.DEPLOYMENT_ID}")
+                    }
                 }
             }
         }
