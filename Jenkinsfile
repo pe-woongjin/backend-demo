@@ -1,21 +1,22 @@
 import groovy.json.JsonSlurper
 
-def APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
-def TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
-
-def ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341"
-def TARGET_RULE_ARN     = ""
 def S3_BUCKET_NAME      = "opsflex-cicd-mgmt"
 def S3_PATH             = "demo-api"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
-def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
+def CODE_DEPLOY_NAME    = ""
 
+def APP_DOMAIN_NAME     = ""
+def TARGET_GROUP_PREFIX = ""
+def ALB_LISTENER_ARN    = ""
+def TARGET_RULE_ARN     = ""
+
+def PROFILE            = ""
 def AWS_PROFILE         = ""
 def DEPLOY_GROUP_NAME   = ""
 def DEPLOYMENT_ID       = ""
 def ASG_DESIRED         = 0     /* 현재 ELB에 연결된 BLUE 스테이지의 엑티브 인스턴스 수로 Green 스테이지에 배포시 동일하게 생성 한다 */
 def ASG_MIN             = 1
-def VALID_TARGET_STAGE  = false /* 현재 ELB에 연결되지 않은 Target 스테이지(Green)의 인스턴스 수로 배포를 위해선 반드시 0 이여야 한다. */
+def VALID_TARGET_STAGE  = false /* 현재 ELB에 연결되지 않은 Target 스테이지(Green)는 인스턴스가 없어야 */
 def CURR_ASG_NAME       = ""
 def NEXT_ASG_NAME       = ""
 def NEXT_TG_ARN         = ""
@@ -31,17 +32,32 @@ def toJson(String text) {
 def initAWSProfile(String buildBranch) {
     echo "Build-Branch: ${buildBranch} -----"
     if(buildBranch == "release") {
-      env.AWS_PROFILE = " --profile stage"
+      env.PROFILE             = "stg"
+      env.AWS_PROFILE         = "--profile stage"
+      env.APP_DOMAIN_NAME     = "demo-api-stg.mingming.shop"
+      env.CODE_DEPLOY_NAME    = "demo-apne2-stg-api-cd"
+      env.TARGET_GROUP_PREFIX = "demo-apne2-stg-api"
+      env.ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/stg21323232321313"
     }
     else if(buildBranch == "master") {
-      env.AWS_PROFILE = " --profile production"
+      env.PROFILE             = "prd"
+      env.AWS_PROFILE         = "--profile production"
+      env.APP_DOMAIN_NAME     = "demo-api-prd.mingming.shop"
+      env.CODE_DEPLOY_NAME    = "demo-apne2-prd-api-cd"
+      env.TARGET_GROUP_PREFIX = "demo-apne2-stg-api"
+      env.ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/prd23423424434343"
     }
     else {
-      env.AWS_PROFILE = ""
+      env.PROFILE             = "dev"
+      env.AWS_PROFILE         = ""
+      env.APP_DOMAIN_NAME     = "demo-api-dev.mingming.shop"
+      env.CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
+      env.TARGET_GROUP_PREFIX = "demo-apne2-dev-api"
+      env.ALB_LISTENER_ARN    = "arn:aws:elasticloadbalancing:ap-northeast-2:144149479695:listener/app/comp-apne2-prod-mgmt-alb/d76ec25af38db29c/d15a5636f3b71341"
     }
 }
 
-def initVariables(def tgList) {
+def initVariables(def tgList, String profile) {
     tgList.each { tg ->
         String lbARN  = tg.LoadBalancerArns[0]
         String tgName = tg.TargetGroupName
@@ -49,14 +65,14 @@ def initVariables(def tgList) {
 
         if(lbARN != null && lbARN.startsWith("arn:aws")) {
             env.ALB_ARN = lbARN
-            if(tgName.startsWith("demo-apne2-dev-api-a")) {
+            if(tgName.startsWith("demo-apne2-${env.PROFILE}-api-a")) {
                 env.DEPLOY_GROUP_NAME = "group-b"
-                env.CURR_ASG_NAME     = "demo-apne2-dev-api-a-asg"
-                env.NEXT_ASG_NAME     = "demo-apne2-dev-api-b-asg"
+                env.CURR_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-a-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-b-asg"
             } else {
                 env.DEPLOY_GROUP_NAME = "group-a"
-                env.CURR_ASG_NAME     = "demo-apne2-dev-api-b-asg"
-                env.NEXT_ASG_NAME     = "demo-apne2-dev-api-a-asg"
+                env.CURR_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-b-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-a-asg"
             }
         } else {
             env.NEXT_TG_ARN       = tgARN
@@ -65,11 +81,11 @@ def initVariables(def tgList) {
     }
 }
 
-def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
+def discoveryTargetRuleArn() {
   return sh(
     script: """
-    aws elbv2 describe-rules --listener-arn ${listenerARN} \
-       --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
+    aws elbv2 describe-rules --listener-arn ${env.ALB_LISTENER_ARN} \
+       --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${env.TARGET_GROUP_PREFIX}`)==`true`]}' \
        --region ap-northeast-2 ${env.AWS_PROFILE} \
        --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
     returnStdout: true).trim()
@@ -121,6 +137,7 @@ VALID_TARGET_STAGE:  ${env.VALID_TARGET_STAGE}
 def validate() {
   echo "validate -----"
 
+if(env.ALB_ARN == )
 
 }
 
@@ -134,7 +151,7 @@ pipeline {
 
                     echo "Discovery Active Target Group -----"
 
-                    def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
+                    def target_rule_arn = discoveryTargetRuleArn()
                     env.TARGET_RULE_ARN = target_rule_arn
 
                     def textValue = discoveryTargetGroup()
