@@ -31,13 +31,13 @@ def toJson(String text) {
 def initAWSProfile(String buildBranch) {
     echo "Build-Branch: ${buildBranch} -----"
     if(buildBranch == "release") {
-      env.AWS_PROFILE = "stage"
+      env.AWS_PROFILE = " --profile stage"
     }
     else if(buildBranch == "master") {
-      env.AWS_PROFILE = "production"
+      env.AWS_PROFILE = " --profile production"
     }
     else {
-      env.AWS_PROFILE = "default"
+      env.AWS_PROFILE = ""
     }
 }
 
@@ -70,7 +70,7 @@ def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
     script: """
     aws elbv2 describe-rules --listener-arn ${listenerARN} \
        --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
-       --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+       --region ap-northeast-2 ${env.AWS_PROFILE} \
        --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
     returnStdout: true).trim()
 }
@@ -79,7 +79,7 @@ def discoveryTargetGroup() {
   sh"""
   aws elbv2 describe-target-groups \
   --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
-  --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+  --region ap-northeast-2 ${env.AWS_PROFILE} \
   --output json > TARGET_GROUP_LIST.json
   cat ./TARGET_GROUP_LIST.json
   """
@@ -90,7 +90,7 @@ def getCurrentAsgActiveInstances() {
   return sh(script: """
      aws autoscaling describe-auto-scaling-groups \
      --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
-     --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+     --region ap-northeast-2 ${env.AWS_PROFILE} \
      --output text |grep InService | wc -l
     """, returnStdout: true).toInteger()
 }
@@ -98,7 +98,7 @@ def getCurrentAsgActiveInstances() {
 def validateTargetAutoScalingStage() {
   def validTargetStage = sh(script: """
        aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${env.NEXT_ASG_NAME}`].InstanceId' \
-       --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+       --region ap-northeast-2 ${env.AWS_PROFILE} \
        --output text | wc -l
       """, returnStdout: true).toInteger()
   return (validTargetStage < 1 ? true : false)
