@@ -251,8 +251,8 @@ pipeline {
 */
 
         stage('Preparing Auto-Scale Stage') {
-
             steps {
+
                 script {
                     echo "----- [Auto-Scale] Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
 
@@ -267,9 +267,7 @@ pipeline {
                     // echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 80 secs. -----"
                     // sh "sleep 80"
                 }
-            }
-            
-            steps {
+                
                 script {
                     checkAsgBootupInstances()
                     echo "Checked bootedup ec2 instances ======="
