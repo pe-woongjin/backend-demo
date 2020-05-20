@@ -65,14 +65,14 @@ def initVariables(def tgList, String profile) {
 
         if(lbARN != null && lbARN.startsWith("arn:aws")) {
             env.ALB_ARN = lbARN
-            if(tgName.startsWith("demo-apne2-${env.PROFILE}-api-a")) {
+            if(tgName.startsWith("demo-apne2-${profile}-api-a")) {
                 env.DEPLOY_GROUP_NAME = "group-b"
-                env.CURR_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-a-asg"
-                env.NEXT_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-b-asg"
+                env.CURR_ASG_NAME     = "demo-apne2-${profile}-api-a-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-${profile}-api-b-asg"
             } else {
                 env.DEPLOY_GROUP_NAME = "group-a"
-                env.CURR_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-b-asg"
-                env.NEXT_ASG_NAME     = "demo-apne2-${env.PROFILE}-api-a-asg"
+                env.CURR_ASG_NAME     = "demo-apne2-${profile}-api-b-asg"
+                env.NEXT_ASG_NAME     = "demo-apne2-${profile}-api-a-asg"
             }
         } else {
             env.NEXT_TG_ARN       = tgARN
@@ -159,7 +159,7 @@ pipeline {
                     def textValue = discoveryTargetGroup()
                     def tgList = toJson( textValue )
 
-                    initVariables( tgList )
+                    initVariables( tgList, env.PROFILE )
                 }
             }
         }
