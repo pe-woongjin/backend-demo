@@ -241,7 +241,9 @@ pipeline {
                     zip -r ${BUNDLE_NAME} ./
                     """
                 }
-                s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
+                withAWS(region:'ap-northeast-2') {
+                    s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
+                }
             }
         }
 
