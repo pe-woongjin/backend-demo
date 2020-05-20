@@ -52,14 +52,12 @@ def initVariables(def tgList) {
 }
 
 def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
-  script {
-    return sh(
-      script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
-                   --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
-                   --region ap-northeast-2 \
-                   --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """, 
-      returnStdout: true).trim()
-    }
+  return sh(
+    script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
+                 --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
+                 --region ap-northeast-2 \
+                 --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
+    returnStdout: true).trim()
 }
 
 def getCurrentAsgActiveInstances() {
@@ -67,10 +65,9 @@ def getCurrentAsgActiveInstances() {
      aws autoscaling describe-auto-scaling-groups \
      --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
      --region ap-northeast-2 \
-     --output text |grep InService | wc -l            
+     --output text |grep InService | wc -l
     """, returnStdout: true).toInteger()
 }
-
 
 def showVariables() {
   echo """showVariables -----
@@ -86,7 +83,7 @@ STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
 }
 
 def validate() {
-  showVariables();
+  echo """validate -----""
 
 }
 
@@ -119,11 +116,13 @@ pipeline {
 
         stage('Validate-Env') {
           steps {
-            script {            
+            script {
               def desiredAsg = getCurrentAsgActiveInstances()
-              env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)            
+              env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)
               echo "ASG_DESIRED: ${desiredAsg}"
-
+              showVariables();
+              validate();
+              
             }
           }
         }
