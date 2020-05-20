@@ -10,7 +10,7 @@ def TARGET_GROUP_PREFIX = ""
 def ALB_LISTENER_ARN    = ""
 def TARGET_RULE_ARN     = ""
 
-def PROFILE            = ""
+def PROFILE             = ""
 def AWS_PROFILE         = ""
 def DEPLOY_GROUP_NAME   = ""
 def DEPLOYMENT_ID       = ""
@@ -29,7 +29,7 @@ def toJson(String text) {
     return parser.parseText( text )
 }
 
-def initAWSProfile(String buildBranch) {
+def initEnvironments(String buildBranch) {
     echo "Build-Branch: ${buildBranch} -----"
     if(buildBranch == "release") {
       env.PROFILE             = "stg"
@@ -87,7 +87,8 @@ def discoveryTargetRuleArn() {
     aws elbv2 describe-rules --listener-arn ${env.ALB_LISTENER_ARN} \
        --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${env.TARGET_GROUP_PREFIX}`)==`true`]}' \
        --region ap-northeast-2 ${env.AWS_PROFILE} \
-       --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
+       --output text | grep -B1 "ACTIONS"  | grep -v "ACTIONS"
+       """,
     returnStdout: true).trim()
 }
 
@@ -135,12 +136,18 @@ VALID_TARGET_STAGE:  ${env.VALID_TARGET_STAGE}
 }
 
 def validate() {
-  echo "validate -----"
+  echo "Validate -----"
 
+  def valid = true;
   if(env.ALB_ARN == "") {
-      echo "ELB 를 찾을 수 없습니다. [AWS 관리 콘솔 > EC2 > 로드밸런서]를 확인 하세요."
+      error "ELB 를 찾을 수 없습니다. [AWS 관리 콘솔 > EC2 > 로드밸런서]를 확인 하세요."
   }
-
+  if(env.NEXT_ASG_NAME == "") {
+    error "배포될 타겟 AutoScalingGroup을 확인 할 수 없습니다. [AWS 관리 콘솔 > EC2 > Auto Scaling 그룹]을 확인 하세요. "
+  }
+  if(env.VALID_TARGET_STAGE == false) {
+    error "배포될 타겟 AutoScalingGroup에 인스턴스가 존재 합니다. [AWS 관리 콘솔 > EC2 > Auto Scaling 그룹] '${env.NEXT_ASG_NAME}'에서 모든 인스턴스가 정리된 후 배포를 진행 하세요. "
+  }
 }
 
 pipeline {
@@ -149,7 +156,7 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    initAWSProfile( "${GIT_BRANCH}" )
+                    initEnvironments( "${GIT_BRANCH}" )
 
                     echo "Discovery Active Target Group -----"
 
