@@ -282,7 +282,7 @@ pipeline {
                     sh"""
                     aws deploy create-deployment \
                     --s3-location bucket="${S3_BUCKET_NAME}",key=${S3_PATH}/${BUNDLE_NAME},bundleType=zip \
-                    --application-name "${CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
+                    --application-name "${env.CODE_DEPLOY_NAME}" --deployment-group-name "${env.DEPLOY_GROUP_NAME}" \
                     --region ap-northeast-2 ${env.AWS_PROFILE} \
                     --output json > DEPLOYMENT_ID.json
                     """
