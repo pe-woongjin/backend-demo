@@ -10,11 +10,12 @@ def S3_PATH             = "demo-api"
 def BUNDLE_NAME         = "deploy-bundle-${BUILD_NUMBER}.zip"
 def CODE_DEPLOY_NAME    = "demo-apne2-dev-api-cd"
 
+def AWS_PROFILE         = ""
 def DEPLOY_GROUP_NAME   = ""
 def DEPLOYMENT_ID       = ""
 def ASG_DESIRED         = 0     /* 현재 ELB에 연결된 BLUE 스테이지의 엑티브 인스턴스 수로 Green 스테이지에 배포시 동일하게 생성 한다 */
 def ASG_MIN             = 1
-def STAGED_ACTIVE_CNT   = 0     /* 현재 ELB에 연결되지 않은 Green 스테이지의 인스턴스 수로 배포를 위해선 반드시 0 이여야 한다. */
+def VALID_TARGET_STAGE  = false /* 현재 ELB에 연결되지 않은 Target 스테이지(Green)의 인스턴스 수로 배포를 위해선 반드시 0 이여야 한다. */
 def CURR_ASG_NAME       = ""
 def NEXT_ASG_NAME       = ""
 def NEXT_TG_ARN         = ""
@@ -25,6 +26,19 @@ def TG_RULE_ARN         = ""
 def toJson(String text) {
     def parser = new JsonSlurper()
     return parser.parseText( text )
+}
+
+def initAWSProfile(String buildBranch) {
+    echo "Build-Branch: ${buildBranch} -----"
+    if(buildBranch == "release") {
+      env.AWS_PROFILE = "stage"
+    }
+    else if(buildBranch == "master") {
+      env.AWS_PROFILE = "production"
+    }
+    else {
+      env.AWS_PROFILE = "default"
+    }
 }
 
 def initVariables(def tgList) {
@@ -53,24 +67,46 @@ def initVariables(def tgList) {
 
 def discoveryTargetRuleArn(def listenerARN, def tgPrefix) {
   return sh(
-    script: """aws elbv2 describe-rules --listener-arn ${listenerARN} \
-                 --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
-                 --region ap-northeast-2 \
-                 --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
+    script: """
+    aws elbv2 describe-rules --listener-arn ${listenerARN} \
+       --query 'Rules[].{RuleArn: RuleArn, Actions: Actions[?contains(TargetGroupArn,`${tgPrefix}`)==`true`]}' \
+       --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+       --output text | grep -B1 "ACTIONS"  | grep -v  "ACTIONS"   """,
     returnStdout: true).trim()
+}
+
+def discoveryTargetGroup() {
+  sh"""
+  aws elbv2 describe-target-groups \
+  --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
+  --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+  --output json > TARGET_GROUP_LIST.json
+  cat ./TARGET_GROUP_LIST.json
+  """
+  return readFile("TARGET_GROUP_LIST.json")
 }
 
 def getCurrentAsgActiveInstances() {
   return sh(script: """
      aws autoscaling describe-auto-scaling-groups \
      --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
-     --region ap-northeast-2 \
+     --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
      --output text |grep InService | wc -l
     """, returnStdout: true).toInteger()
 }
 
+def validateTargetAutoScalingStage() {
+  def validTargetStage = sh(script: """
+       aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${env.NEXT_ASG_NAME}`].InstanceId' \
+       --region ap-northeast-2 --profile ${env.AWS_PROFILE} \
+       --output text | wc -l
+      """, returnStdout: true).toInteger()
+  return (validTargetStage < 1 ? true : false)
+}
+
 def showVariables() {
-  echo """showVariables -----
+  echo """
+showVariables -----
 CURR_ASG_NAME:       ${env.CURR_ASG_NAME}
 NEXT_ASG_NAME:       ${env.NEXT_ASG_NAME}
 DEPLOY_GROUP_NAME:   ${env.DEPLOY_GROUP_NAME}
@@ -78,12 +114,13 @@ ALB_ARN:             ${env.ALB_ARN}
 NEXT_TG_ARN:         ${env.NEXT_TG_ARN}
 NEXT_TARGET_GROUP:   ${env.NEXT_TARGET_GROUP}
 ASG_DESIRED:         ${env.ASG_DESIRED}
-STAGED_ACTIVE_CNT:   ${env.STAGED_ACTIVE_CNT}
+VALID_TARGET_STAGE:  ${env.VALID_TARGET_STAGE}
    """
 }
 
 def validate() {
-  echo"validate -----"
+  echo "validate -----"
+
 
 }
 
@@ -93,22 +130,16 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo """Discovery Active Target Group ----- \nGIT Branch: $GIT_BRANCH"""
+                    initAWSProfile( "${GIT_BRANCH}" )
+
+                    echo "Discovery Active Target Group -----"
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
- 
-                    sh"""
-                    aws elbv2 describe-target-groups \
-                    --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
-                    --region ap-northeast-2 --output json > TARGET_GROUP_LIST.json
 
-                    cat ./TARGET_GROUP_LIST.json
-                    """
-
-                    def textValue = readFile("TARGET_GROUP_LIST.json")
+                    def textValue = discoveryTargetGroup()
                     def tgList = toJson( textValue )
-                    
+
                     initVariables( tgList )
                 }
             }
@@ -120,10 +151,8 @@ pipeline {
             
               def desiredAsg = getCurrentAsgActiveInstances()
               env.ASG_DESIRED = (desiredAsg > 0 ? desiredAsg : 1)
-              echo "ASG_DESIRED: ${desiredAsg}"
-              
+              env.VALID_TARGET_STAGE = validateTargetAutoScalingStage()
               showVariables()
-              
               validate()
 
             }
