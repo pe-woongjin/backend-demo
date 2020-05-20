@@ -231,8 +231,9 @@ pipeline {
                 s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
             }
         }
-
+*/
         stage('Preparing Auto-Scale Stage') {
+            /*
             steps {
                 script {
                     echo "----- [Auto-Scale] Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
@@ -248,8 +249,31 @@ pipeline {
                     sh "sleep 80"
                 }
             }
+            */
+            
+            steps {
+                script {
+                  
+                  echo "waiting....."
+                  timeout(time: 120, unit: 'SECONDS'){
+                    waitUntil {
+                      try {
+                          def bootupIns = nextAsgBootupInstances()
+                          if(bootupIns > 0) {
+                            return true
+                          }
+                      } catch (exception) {
+                          return false
+                      }
+                    }                      
+                  }
+                    
+                }
+                echo "OK....."
+            }
         }
-
+        
+/*
         stage('Deploy') {
             steps {
                 script {
