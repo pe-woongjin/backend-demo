@@ -151,8 +151,8 @@ def validate() {
 }
 
 def checkAsgBootupInstances() {
-    boolean valid = false
-    for (int i = 1; i <= 10; i++) {    
+    for (int i = 1; i <= 3; i++) {
+        sh "sleep 10"
         echo "${i} - Wating for bootup instances"
         def cnt = sh(script: """
              aws autoscaling describe-auto-scaling-groups \
@@ -161,12 +161,10 @@ def checkAsgBootupInstances() {
              --output text |grep InService | wc -l
             """, returnStdout: true).toInteger()
         if(cnt > 0) {
-            valid = true;
-            return true;
-        }
-        sh "sleep 10"
+            break
+        }        
     }
-    return valid;
+    return true
 }
 
 pipeline {
