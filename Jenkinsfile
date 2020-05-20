@@ -81,24 +81,13 @@ pipeline {
         stage('Pre-Process') {
             steps {
                 script {
-                    echo """BRANCH: ${GIT_BRANCH}
------ [Pre-Process] Discovery Active Target Group -----"""
+                    echo "Discovery Active Target Group -----
+                    GIT Branch: $GIT_BRANCH
+                    "
 
                     def target_rule_arn = discoveryTargetRuleArn( ALB_LISTENER_ARN, TARGET_GROUP_PREFIX )
                     env.TARGET_RULE_ARN = target_rule_arn
  
-                    def ASG_PREFIX_NAME = "demo-apne2-dev-api" 
-                    
-                    sh"""
-                    aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?starts_with(AutoScalingGroupName,`${ASG_PREFIX_NAME}`)==`true`]' \
-                     --query 'AutoScalingInstances[?LifecycleState==`InService`].InstanceId' \
-                     --region ap-northeast-2 \
-                     --output text | awk -F' ' '{print NF; exit}' > ASG_DESIRED_CNT.json
-                    """
-                    
-                    def desiredAsg = sh(script: "cat ./ASG_DESIRED_CNT.json", returnStdout: true).trim()
-                    env.ASG_DESIRED = desiredAsg
-                    
                     sh"""
                     aws elbv2 describe-target-groups \
                     --query 'TargetGroups[?starts_with(TargetGroupName,`${TARGET_GROUP_PREFIX}`)==`true`]' \
@@ -115,6 +104,28 @@ pipeline {
             }
         }
 
+        stage('Validate-Env') {
+          steps {
+            script {
+            
+              def desiredAsg = sh(script: """
+                                  aws autoscaling describe-auto-scaling-groups \
+                                  --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.CURR_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
+                                  --region ap-northeast-2 \
+                                  --output text |grep InService | wc -l            
+                                 """, returnStdout: true).toInteger()
+            
+              if (desiredAsg > 0) {
+                env.ASG_DESIRED = desiredAsg
+              } else {
+                env.ASG_DESIRED = 1
+              }
+              
+
+            }
+          }
+        }
+/*
         stage('Build') {
             steps {
                 script {
@@ -173,8 +184,8 @@ pipeline {
                     --region ap-northeast-2
                     """
 
-                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 60 secs. -----"
-                    sh "sleep 60"
+                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 80 secs. -----"
+                    sh "sleep 80"
                 }
             }
         }
@@ -236,7 +247,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Post-Process') {
             steps {
                 echo "----- [Post-Process] post-process -----"
