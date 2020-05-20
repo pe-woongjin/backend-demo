@@ -137,7 +137,9 @@ VALID_TARGET_STAGE:  ${env.VALID_TARGET_STAGE}
 def validate() {
   echo "validate -----"
 
-if(env.ALB_ARN == )
+  if(env.ALB_ARN == "") {
+      echo "ELB 를 찾을 수 없습니다. [AWS 관리 콘솔 > EC2 > 로드밸런서]를 확인 하세요."
+  }
 
 }
 
