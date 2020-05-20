@@ -242,7 +242,7 @@ pipeline {
                     """
                 }
 
-                withAWS( region:'ap-northeast-2', profile:'default' ) {
+                withAWS( region:'ap-northeast-2' ) {
                     s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
                 }
 
