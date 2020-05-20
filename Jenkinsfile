@@ -114,9 +114,9 @@ def currentAsgActiveInstances() {
 
 def checkAsgBootupInstances() {
     echo "checkAsgBootupInstances"
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= 12; i++) {
         sh "sleep 10"
-        echo "${i} - Wating for bootup instances"
+        echo "Wating for bootup instances - ${i} times."
         def cnt = sh(script: """
              aws autoscaling describe-auto-scaling-groups \
              --query 'AutoScalingGroups[?starts_with(AutoScalingGroupName,`${env.NEXT_ASG_NAME}`)==`true`].Instances[?LifecycleState==InService]' \
@@ -251,28 +251,28 @@ pipeline {
 */
 
         stage('Preparing Auto-Scale Stage') {
-            /*
+
             steps {
                 script {
                     echo "----- [Auto-Scale] Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
 
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-                    --desired-capacity ${env.ASG_DESIRED} \
+                    --desired-capacity 5 \
                     --min-size ${ASG_MIN} \
                     --region ap-northeast-2
                     """
-
-                    echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 80 secs. -----"
-                    sh "sleep 80"
+                    
+                    // ${env.ASG_DESIRED}
+                    // echo "----- [Auto-Scale] Waiting boot-up ec2 instances: 80 secs. -----"
+                    // sh "sleep 80"
                 }
             }
-            */
             
             steps {
                 script {
                     checkAsgBootupInstances()
-                    echo "boot-up ec2 instances ======="
+                    echo "Checked bootedup ec2 instances ======="
                 }
                 
             }
