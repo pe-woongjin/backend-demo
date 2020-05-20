@@ -123,7 +123,7 @@ def checkAsgBootupInstances() {
              --region ap-northeast-2 ${env.AWS_PROFILE} \
              --output text |grep InService | wc -l
             """, returnStdout: true).toInteger()
-        if(cnt > 0 || i == 2) {
+        if(cnt > 0) {
             break
         }        
     }
@@ -202,7 +202,6 @@ pipeline {
           }
         }
 
-/*
         stage('Build') {
             steps {
                 script {
@@ -248,13 +247,12 @@ pipeline {
                 s3Upload(bucket: "${S3_BUCKET_NAME}", file: "./deploy-bundle/${BUNDLE_NAME}", path: "${S3_PATH}/${BUNDLE_NAME}")
             }
         }
-*/
 
         stage('Preparing Auto-Scale Stage') {
             steps {
 
                 script {
-                    echo "----- [Auto-Scale] Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
+                    echo "Preparing Next Auto-Scaling-Group: ${env.NEXT_ASG_NAME} -----"
 
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
@@ -276,7 +274,6 @@ pipeline {
             }
         }        
         
-/*
         stage('Deploy') {
             steps {
                 script {
@@ -305,6 +302,7 @@ pipeline {
             }
         }
 
+/*
         stage('Change LB-Routing') {
             steps {
                 script {
