@@ -257,7 +257,7 @@ pipeline {
 
                     sh"""
                     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${env.NEXT_ASG_NAME} \
-                    --desired-capacity 5 \
+                    --desired-capacity ${env.ASG_DESIRED} \
                     --min-size ${ASG_MIN} \
                     --region ap-northeast-2 ${env.AWS_PROFILE}
                     """
@@ -306,7 +306,6 @@ pipeline {
             }
         }
 
-/*
         stage('Change LB-Routing') {
             steps {
                 script {
@@ -337,7 +336,7 @@ pipeline {
                 }
             }
         }
-*/
+        
         stage('Post-Process') {
             steps {
                 echo "----- [Post-Process] post-process -----"
