@@ -312,7 +312,7 @@ pipeline {
                     echo "----- [LB] Change load-balancer routing path -----"
                     sh"""
                     aws elbv2 modify-rule --rule-arn ${env.TARGET_RULE_ARN} \
-                    --conditions Field=host-header,Values=${APP_DOMAIN_NAME} \
+                    --conditions Field=host-header,Values=${env.APP_DOMAIN_NAME} \
                     --actions Type=forward,TargetGroupArn=${env.NEXT_TG_ARN} \
                     --region ap-northeast-2 ${env.AWS_PROFILE} \
                     --output json > CHANGED_LB_TARGET_GROUP.json
